@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Delicia e foco</string>
+    <string name="select_enterprise">Por favor, selecione a empresa em que este dispositivo estará alocado</string>
+    <string name="select">Selecionar</string>
+    <string name="cart">Carrinho</string>
+
+    <string name="title_activity_store">Loja - Delícia e Foco</string>
+    <string name="title_activity_cart">Carrinho - Delícia e Foco</string>
+    <string name="title_activity_payafter">Selecionar Conta - Delícia e Foco</string>
+
+    <string name="cart_subtitle">Seu carrinho de compras</string>
+    <string name="cart_delete_info">Para remover um produto, basta tocar sobre ele</string>
+    <string name="cart_total_value">O total de seu carrinho é de: </string>
+    <string name="what_do">O que deseja fazer agora?</string>
+    <string name="btnPayNow">Pagar Agora</string>
+    <string name="btnPayAfter">Pagar Depois</string>
+    <string name="btnKeepBuying">Continuar Comprando</string>
+    <string name="btnCancelCart">Cancelar Compra</string>
+    <string name="formaPagamento">Selecione a forma de pagamento</string>
+    <string name="title_activity_conclude_sale">ConcludeSale</string>
+    <string name="thanks">Obrigado por comprar conosco!</string>
+
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+</resources>

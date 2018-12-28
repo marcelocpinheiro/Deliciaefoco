@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.app.deliciaefoco.deliciaefoco.Activities.PayAfterActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Voltar"
+            android:layout_gravity="end|bottom"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="5dp"/>
+
+
+    </android.support.design.widget.AppBarLayout>
+
+    <EditText
+        android:id="@+id/txtSearchEmployee"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Buscar nome ou e-mail"/>
+
+    <GridView
+        android:id="@+id/gridViewClients"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:numColumns="auto_fit"
+        android:padding="20dp"
+        android:columnWidth="400dp"
+        android:verticalSpacing="10dp"
+        android:horizontalSpacing="10dp"
+        android:background="#FFF"/>
+</LinearLayout>

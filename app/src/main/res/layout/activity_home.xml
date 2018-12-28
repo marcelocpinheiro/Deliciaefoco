@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    tools:context="com.app.deliciaefoco.deliciaefoco.Activities.HomeActivity">
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btnBuy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Comprar"
+            android:background="@color/colorPrimary"
+            android:textColor="#FFF"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="20dp"/>
+
+        <Button
+            android:id="@+id/btnPagarCarrinhos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pagar (Carrinhos em aberto)"
+            android:background="@color/colorPrimary"
+            android:textColor="#FFF"
+            android:layout_marginBottom="15dp"/>
+
+        <Button
+            android:id="@+id/btnProblems"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Problemas / Sugestões"
+            android:background="@color/colorPrimary"
+            android:textColor="#FFF"
+            android:layout_marginBottom="15dp"/>
+
+        <Button
+            android:id="@+id/button4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Administrativo"
+            android:layout_marginTop="400dp"
+            android:layout_gravity="bottom"/>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/home_image"
+        android:padding="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </ImageView>
+
+</LinearLayout>

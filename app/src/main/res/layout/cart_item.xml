@@ -1,0 +1,69 @@
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="85dp"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="500dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/lista_produto_nome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Titulo"
+            android:textSize="20dp" />
+
+        <TextView
+            android:id="@+id/lista_produto_linha1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="descriçao"
+            android:textSize="12dp" />
+
+        <TextView
+            android:id="@+id/lista_produto_linha2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="descriçao"
+            android:textSize="12dp" />
+
+    </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="350dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end|right">
+
+            <Button
+                android:id="@+id/btnIncreaseQuantity"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:text="+"
+                android:textSize="30dp"
+                android:background="#30e520"
+                android:textColor="#FFF"
+                />
+            <Button
+                android:id="@+id/btnDecreaseQuantity"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:text="-"
+                android:textSize="30dp"
+                android:background="#FF4545"
+                android:textColor="#FFF"
+                />
+
+            <Button
+                android:id="@+id/btnRemoveItem"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:text="Remover"
+                android:background="#222"
+                android:textColor="#FFF"/>
+        </LinearLayout>
+
+</LinearLayout>
