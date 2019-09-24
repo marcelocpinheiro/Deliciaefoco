@@ -283,8 +283,7 @@ public class GiveBackActivity extends AppCompatActivity {
     private String pagSeguroValue(double value){
         DecimalFormat df = new DecimalFormat("#.00");
         String formatted = df.format(value);
-        //return  formatted.replace(".", "").replace(",", "");
-        return "020";
+        return  formatted.replace(".", "").replace(",", "");
     }
 
     private void setLastTransactionValues(String date, String time, String cardBrand){
