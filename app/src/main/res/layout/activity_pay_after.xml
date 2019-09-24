@@ -30,7 +30,11 @@
         android:id="@+id/txtSearchEmployee"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Buscar nome ou e-mail"/>
+        android:hint="Buscar nome ou e-mail"
+        android:text=""
+        android:textSize="40px"
+        android:background="#EEE"
+        android:padding="20px"/>
 
     <GridView
         android:id="@+id/gridViewClients"

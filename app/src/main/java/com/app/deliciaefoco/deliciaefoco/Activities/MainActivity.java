@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,7 +39,7 @@ public class MainActivity extends AppCompatActivity{
     private AlertDialog alerta;
     Context context = this;
     HashMap<String ,Integer> hmLang;
-    String FILENAME = "enterprise_file.txt";
+    String FILENAME = "DEFAULT_COMPANY";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +61,10 @@ public class MainActivity extends AppCompatActivity{
 
         setContentView(R.layout.activity_main);
 
-
-
-        File file = new File(this.FILENAME);
-        if(file.exists()){
-            Intent intent = new Intent(this, StoreActivity.class);
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+            Log.d("enterprise_id", settings.getInt("enterprise_id", 0) + "");
+        if(settings.getInt("enterprise_id", 0) != 0){
+            Intent intent = new Intent(this, HomeActivity.class);
             startActivity(intent);
             finish();
         }else{
@@ -79,14 +79,10 @@ public class MainActivity extends AppCompatActivity{
                 String selected = spn.getSelectedItem().toString();
                 int id_selected_enterprise = hmLang.get(selected);
 
-                File file = new File(FILENAME);
-                try {
-                    FileOutputStream outputStream = openFileOutput(FILENAME, Context.MODE_PRIVATE);
-                    outputStream.write((id_selected_enterprise+"").getBytes());
-                    outputStream.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putInt("enterprise_id", id_selected_enterprise);
+                editor.commit();
 
                 Intent intent = new Intent(context, HomeActivity.class);
                 startActivity(intent);
@@ -124,6 +120,7 @@ public class MainActivity extends AppCompatActivity{
                 try{
                     for(int i=0;i<response.length();i++){
                         JSONObject enterprise = response.getJSONObject(i);
+                        Log.d("DeliciaEFoco", enterprise.getString("nome_fantasia"));
                         spinnerArray.add(enterprise.getString("nome_fantasia"));
                         hmLang.put(enterprise.getString("nome_fantasia"), enterprise.getInt("id"));
                     }
@@ -143,7 +140,7 @@ public class MainActivity extends AppCompatActivity{
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                Log.d("DeliciaEFoco", "Falha ao buscar empresas");
+                Log.d("DeliciaEFoco", "Falha ao buscar empresas " + error.getMessage() + " " + error.networkResponse + " " + error.getNetworkTimeMs());
                 progress.dismiss();
             }
         });

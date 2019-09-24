@@ -5,9 +5,12 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -44,7 +47,7 @@ import java.util.ArrayList;
 
 public class SelectEmployeeActivity extends AppCompatActivity {
     JSONArray employees;
-    String FILENAME = "enterprise_file.txt";
+    String FILENAME = "DEFAULT_COMPANY";
     private Integer enterpriseId = 0;
     EmployeeGridViewAdapter adapter;
     private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
@@ -74,26 +77,28 @@ public class SelectEmployeeActivity extends AppCompatActivity {
         });
 
         //busca o id da empresa salvo no arquivo
-        try{
-            FileInputStream in = openFileInput(FILENAME);
-            InputStreamReader inputStreamReader = new InputStreamReader(in);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        this.enterpriseId = settings.getInt("enterprise_id", 0);
+        this.getEmployees();
+
+
+        EditText txtFilter = (EditText) findViewById(R.id.txtSearchEmployee);
+        txtFilter.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
             }
-            this.enterpriseId = Integer.parseInt(sb.toString());
 
-            this.getEmployees();
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                adapter.getFilter().filter(s);
+            }
 
-        }catch(FileNotFoundException e){
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivityForResult(intent, 0);
-            finish();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 
         gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -166,15 +171,6 @@ public class SelectEmployeeActivity extends AppCompatActivity {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
-
-
-
-
-
-
-
-
                     }
                 });
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

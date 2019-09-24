@@ -3,6 +3,7 @@ package com.app.deliciaefoco.deliciaefoco.Activities;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -46,7 +47,7 @@ public class PayAfterActivity extends AppCompatActivity {
     List<Product> products;
     ArrayList<LotProductInterface> lots;
     JSONArray employees;
-    String FILENAME = "enterprise_file.txt";
+    String FILENAME = "DEFAULT_COMPANY";
     private Integer enterpriseId = 0;
     EmployeeGridViewAdapter adapter;
     private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
@@ -66,26 +67,9 @@ public class PayAfterActivity extends AppCompatActivity {
         gv = (GridView) findViewById(R.id.gridViewClients);
 
         //busca o id da empresa salvo no arquivo
-        try{
-            FileInputStream in = openFileInput(FILENAME);
-            InputStreamReader inputStreamReader = new InputStreamReader(in);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
-            }
-            this.enterpriseId = Integer.parseInt(sb.toString());
-
-            this.getEmployees();
-
-        }catch(FileNotFoundException e){
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivityForResult(intent, 0);
-            finish();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        this.enterpriseId = settings.getInt("enterprise_id", 0);
+        this.getEmployees();
 
         EditText txtFilter = (EditText) findViewById(R.id.txtSearchEmployee);
         txtFilter.addTextChangedListener(new TextWatcher() {
@@ -122,6 +106,7 @@ public class PayAfterActivity extends AppCompatActivity {
                 intent.putExtra("PRODUTOS", gson.toJson(products));
                 intent.putExtra("EMPLOYEE", gson.toJson(employee));
                 intent.putExtra("LOTS", gson.toJson(lots));
+                intent.putExtra("CARTEIRA", getIntent().getIntExtra("CARTEIRA", 0));
                 startActivityForResult(intent, 0);
             }
         });
@@ -179,13 +164,14 @@ public class PayAfterActivity extends AppCompatActivity {
                     progress.dismiss();
 
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.d("DeliciaEFoco", e.getMessage());
+                    progress.dismiss();
                 }
             }
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                Log.d("DeliciaEFoco", "Falha ao buscar empresas");
+                Log.d("DeliciaEFoco", error.getMessage());
                 progress.dismiss();
             }
         });

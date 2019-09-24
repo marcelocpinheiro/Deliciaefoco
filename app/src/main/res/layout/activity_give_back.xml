@@ -4,11 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:weightSum="100"
     android:orientation="horizontal"
     tools:context="com.app.deliciaefoco.deliciaefoco.Activities.GiveBackActivity">
 
     <LinearLayout
-        android:layout_width="400dp"
+        android:layout_width="0dp"
+        android:layout_weight="34"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
@@ -20,7 +22,8 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="400dp"
+        android:layout_width="0dp"
+        android:layout_weight="33"
         android:layout_height="match_parent"
         android:orientation="vertical">
         <ListView
@@ -30,7 +33,8 @@
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="400dp"
+        android:layout_width="0dp"
+        android:layout_weight="33"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
@@ -58,13 +62,43 @@
             android:id="@+id/btnPayWithCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pagar" />
+            android:text="Pagar Selecionado" />
+
+        <Button
+            android:id="@+id/btnPayTotalDebt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pagar o Valor Total" />
 
         <Button
             android:id="@+id/btnCancelarGiveBack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Cancelar" />
+
+        <TextView
+            android:id="@+id/txtInfoDebt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="Estão sendo exibidas 8 compras mais antigas (Caso deseja pagar parcialmente). Para pagar o valor total devido, consulte abaixo: "
+            />
+
+
+
+        <TextView
+            android:id="@+id/txtTotalDebtValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:padding="20dp"
+            android:textSize="20dp"
+            android:textStyle="bold"/>
+
+
+
+
+
 
     </LinearLayout>
 

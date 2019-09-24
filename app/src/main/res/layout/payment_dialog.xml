@@ -20,7 +20,7 @@
         android:id="@+id/btnCredit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Crédito"
+        android:text="Cartão Crédito"
         android:background="@color/colorPrimary"
         android:textColor="@android:color/white"
         android:layout_marginBottom="10dp"
@@ -30,7 +30,7 @@
         android:id="@+id/btnDebit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Débito"
+        android:text="Cartão Débito"
         android:background="@color/colorPrimary"
         android:textColor="@android:color/white"
         android:layout_marginBottom="10dp"
@@ -40,7 +40,27 @@
         android:id="@+id/btnVoucher"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Voucher"
+        android:text="Cartão Voucher (Sodexo, Alelo, VR)"
+        android:background="@color/colorPrimary"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="10dp"
+        style="?android:attr/selectableItemBackground"/>
+
+    <Button
+        android:id="@+id/btnCarteira"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Saldo / Crédito"
+        android:background="@color/colorPrimary"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="10dp"
+        style="?android:attr/selectableItemBackground"/>
+
+    <Button
+        android:id="@+id/btnDinheiro"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dinheiro / Transferência"
         android:background="@color/colorPrimary"
         android:textColor="@android:color/white"
         android:layout_marginBottom="10dp"

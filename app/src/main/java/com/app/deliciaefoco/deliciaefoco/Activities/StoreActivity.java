@@ -6,12 +6,14 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -60,14 +62,13 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
     Product currentProduct;
     HashMap<String ,Integer> hmLang;
     JSONArray products;
-    String FILENAME = "enterprise_file.txt";
+    String FILENAME = "DEFAULT_COMPANY";
     private Integer enterpriseId = 0;
     private int lastInteractionTime;
     ProductGridViewAdapter adapter;
     ArrayList<LotProductInterface> lots, lotsToSend;
-    Thread detectThread;
     EditText txtSearch;
-    Button btnCart;
+    Button btnCart, btnEsvaziar;
     //atributo da classe.
 
     @Override
@@ -80,6 +81,7 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         cart = new ArrayList<Product>();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -96,47 +98,31 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
             }
         });
 
-        try{
-            FileInputStream in = openFileInput(FILENAME);
-            InputStreamReader inputStreamReader = new InputStreamReader(in);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
+
+
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        this.enterpriseId = settings.getInt("enterprise_id", 0);
+
+
+        txtSearch = (EditText) findViewById(R.id.editTextSearch);
+        txtSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
             }
-            this.enterpriseId = Integer.parseInt(sb.toString());
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                adapter.getFilter().filter(s);
+            }
 
-            txtSearch = (EditText) findViewById(R.id.editTextSearch);
-            txtSearch.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            @Override
+            public void afterTextChanged(Editable s) {
 
-                }
+            }
+        });
 
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    adapter.getFilter().filter(s);
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-
-                }
-            });
-
-
-
-
-            this.getProducts();
-        }catch(FileNotFoundException e){
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            finish();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.getProducts();
 
 
         btnCart = (Button) findViewById(R.id.btnCart);
@@ -147,8 +133,16 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
                 Intent intent = new Intent(getBaseContext(), CartActivity.class);
                 intent.putExtra("CART_ITEMS", gson.toJson(cart));
                 intent.putExtra("LOTS", gson.toJson(lotsToSend));
-
                 startActivityForResult(intent, 1);
+            }
+        });
+
+        btnEsvaziar = (Button) findViewById(R.id.btnEsvaziar);
+        btnEsvaziar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cart.clear();
+                btnCart.setText("Carrinho");
             }
         });
 
@@ -174,6 +168,11 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
 
             }
         });
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item){
+        finish();
+        return true;
     }
 
     @Override
@@ -247,24 +246,25 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
 
     private void getProducts(){
         RequestQueue requestQueue = Volley.newRequestQueue(context);
+        Log.d("DeliciaeFoco", "Buscando os produtos");
         final ProgressDialog progress = new ProgressDialog(this);
         progress.setTitle("Carregando ...");
         progress.setMessage("Aguarde enquanto carregamos os produtos");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
         progress.show();
 
+        final ArrayList<LotProductInterface> array = new ArrayList<LotProductInterface>();
         JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.baseUrl + "/enterprise/"+enterpriseId+"/products", null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 try {
+                    Log.d("DeliciaeFoco", response.toString());
                     GridView gv = (GridView) findViewById(R.id.gridViewStore);
                     products = response;
-                    ArrayList<LotProductInterface> array = new ArrayList<LotProductInterface>();
                     for(int i = 0; i < products.length(); i++){
                         LotProductInterface obj = new LotProductInterface();
                         ProductInterface productInterface = new ProductInterface();
 
-                        //instancia o produto
 
                         productInterface.id = products.getJSONObject(i)
                                 .getJSONObject("product")
@@ -331,13 +331,15 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
                     progress.dismiss();
 
                 } catch (JSONException e) {
+                    Log.d("Array", array.toString());
+                    Log.d("DeliciaeFoco", e.getMessage());
                     e.printStackTrace();
                 }
             }
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                Log.d("DeliciaEFoco", "Falha ao buscar empresas");
+                Log.d("DeliciaeFoco", "Falha ao buscar produtos " + error.getMessage() + " " + error.networkResponse);
                 progress.dismiss();
             }
         });
@@ -353,29 +355,7 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
         return formatado;
     }
 
-    public void startUserInactivityDetect(){
-        detectThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true) {
-                    try {
-                        Thread.sleep(10000); // checks every 15sec for inactivity
-                        setLastInteractionTime(getLastInteractionTime() + 10000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
 
-                    if(getLastInteractionTime() >= 60000) //SE O USUARIO NÃO MEXE A 1 minutos, Esvazia o carrinho
-                    {
-                        Intent inte = new Intent(context, HomeActivity.class);
-                        startActivity(inte);
-                    }
-                }
-            }
-        });
-
-        detectThread.start();
-    }
 
     @Override
     public void onUserInteraction() {

@@ -1,23 +1,25 @@
 package com.app.deliciaefoco.deliciaefoco.Activities;
 
-import android.content.Context;
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import com.app.deliciaefoco.deliciaefoco.R;
 
-public class ProblemActivity extends AppCompatActivity {
+public class TutorialActivity extends AppCompatActivity {
+    private WebView webView;
 
-    final Context context = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_problem);
+
+        setTitle("Bem vindo à Delícia e Foco");
+
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         final View decorView = getWindow().getDecorView();
@@ -32,34 +34,23 @@ public class ProblemActivity extends AppCompatActivity {
                 }
             }
         });
+        setContentView(R.layout.activity_tutorial);
 
-        Button btnDevolver = (Button) findViewById(R.id.btnDevolverProduto);
-        btnDevolver.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent inte = new Intent(context, SelectEmployeeActivity.class);
-                inte.putExtra("action", "giveback");
-                startActivityForResult(inte, 0);
-            }
-        });
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        Button btnTutorial = (Button) findViewById(R.id.btnTutoriais);
-        btnTutorial.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent inte = new Intent(context, TutorialActivity.class);
-                startActivityForResult(inte, 0);
-            }
-        });
 
-        Button btnVoltar = (Button) findViewById(R.id.btnVoltarPrincipal);
-        btnVoltar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent inte = new Intent(context, HomeActivity.class);
-                startActivityForResult(inte, 0);
-            }
-        });
+
+        webView = (WebView) findViewById(R.id.webview1);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setSupportZoom(false);
+        webView.loadUrl("https://www.youtube.com/channel/UCBFBmFx5iZEL2cOZ5m14p-A");
+        WebViewClient wvc = new WebViewClient();
+        webView.setWebViewClient(wvc);
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item){
+        finish();
+        return true;
     }
 
     @Override

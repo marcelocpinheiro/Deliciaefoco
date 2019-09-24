@@ -13,6 +13,7 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -58,6 +59,32 @@ public class CartActivity extends AppCompatActivity {
     private int lastInteractionTime;
     double currentValue;
     private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
+    boolean dinheiro = false;
+    Thread detectThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while(true) {
+                try {
+                    Thread.sleep(10000); // checks every 15sec for inactivity
+                    setLastInteractionTime(getLastInteractionTime() + 10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if(getLastInteractionTime() >= 120000) //SE O USUARIO NÃO MEXE A 1 minutos, Esvazia o carrinho
+                {
+                    Log.d("inatividade", "StoreActivity");
+                    Intent inte = new Intent(context, HomeActivity.class);
+                    startActivity(inte);
+                }
+            }
+        }
+    });
+
+    public void onDestroy() {
+        super.onDestroy();
+        detectThread.interrupt();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +92,13 @@ public class CartActivity extends AppCompatActivity {
         //getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
         setContentView(R.layout.activity_cart);
         setTitle("Carrinho - Delícia e foco");
-        startUserInactivityDetect();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //detectThread.start();
 
         progress = new ProgressDialog(context);
+
         progress.setTitle("Aguardando pagamento...");
-        progress.setMessage("Efetue o pagamento na maquina de cartões. Caso esta compra não seja sua, cancele o pagamento na máquina de cartões.");
+        progress.setMessage("Efetue o pagamento na maquina de cartões. Caso esta compra não seja sua, cancele o pagamento na máquina de cartões apertando o botão vermelho.");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
 
         //startUserInactivityDetect();
@@ -111,6 +140,7 @@ public class CartActivity extends AppCompatActivity {
 
                                 Intent intent = new Intent(context, HomeActivity.class);
                                 Gson gson = new Gson();
+                                detectThread.interrupt();
                                 startActivityForResult(intent, 0);
                                 finish();
                             }
@@ -133,12 +163,14 @@ public class CartActivity extends AppCompatActivity {
                 //RETORNA OS PRODUTOS DO CARRINHO ATUALIZADOS
                 Intent returnIntent = new Intent();
                 Gson gson = new Gson();
+                detectThread.interrupt();
                 returnIntent.putExtra("result",gson.toJson(products));
                 setResult(Activity.RESULT_OK,returnIntent);
                 finish();
             }
         });
 
+        /*
         Button btnPayAfter = (Button) findViewById(R.id.btnPayAfter);
         btnPayAfter.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -148,6 +180,7 @@ public class CartActivity extends AppCompatActivity {
                     Intent intent = new Intent(getBaseContext(), PayAfterActivity.class);
                     intent.putExtra("CART_ITEMS", gson.toJson(products));
                     intent.putExtra("LOTS", gson.toJson(lots));
+                    intent.putExtra("CARTEIRA", 0);
 
                     startActivityForResult(intent, 0);
                 }else{
@@ -156,11 +189,14 @@ public class CartActivity extends AppCompatActivity {
             }
         });
 
+    */
         Button btnPayNow = (Button) findViewById(R.id.btnPaynow);
         btnPayNow.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
+                selectUser();
 
+                /*
                 if(currentValue > 0){
                     dialog = new Dialog(context);
                     dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -169,6 +205,8 @@ public class CartActivity extends AppCompatActivity {
                     Button btnDebit = (Button) dialog.findViewById(R.id.btnDebit);
                     Button btnCredit = (Button) dialog.findViewById(R.id.btnCredit);
                     Button btnVoucher = (Button) dialog.findViewById(R.id.btnVoucher);
+                    Button btnCarteira = (Button) dialog.findViewById(R.id.btnCarteira);
+                    Button btnDinheiro = (Button) dialog.findViewById(R.id.btnDinheiro);
 
                     btnDebit.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -195,35 +233,63 @@ public class CartActivity extends AppCompatActivity {
                             payNow(3); //VOUCHER
                         }
                     });
+
+                    btnCarteira.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Gson gson = new Gson();
+                            Intent intent = new Intent(getBaseContext(), PayAfterActivity.class);
+                            intent.putExtra("CART_ITEMS", gson.toJson(products));
+                            intent.putExtra("LOTS", gson.toJson(lots));
+                            intent.putExtra("CARTEIRA", 1);
+
+                            startActivityForResult(intent, 0);
+                        }
+                    });
+
+                    btnDinheiro.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+
+                                        concludeSale();
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }).start();
+
+
+                        }
+                    });
                 }else{
                     dialogShow("Compra sem valor. Por favor, insira algum produto.", "Atenção");
                 }
+                */
             }
         });
     }
 
-    public void startUserInactivityDetect(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true) {
-                    try {
-                        Thread.sleep(10000); // checks every 15sec for inactivity
-                        setLastInteractionTime(getLastInteractionTime() + 10000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+    private void selectUser(){
+        if(currentValue > 0) {
+            Gson gson = new Gson();
+            Intent intent = new Intent(getBaseContext(), PayAfterActivity.class);
+            intent.putExtra("CART_ITEMS", gson.toJson(products));
+            intent.putExtra("LOTS", gson.toJson(lots));
+            intent.putExtra("CARTEIRA", 0);
+            detectThread.interrupt();
+            startActivityForResult(intent, 0);
+        }else{
+            dialogShow("Compra sem valor. Por favor, insira algum produto.", "Atenção");
+        }
+    }
 
-                    if(getLastInteractionTime() >= 60000) //SE O USUARIO NÃO MEXE A 1 minuto, REINICIA O APLICATIVO
-                    {
-                        Intent intent = new Intent(context, HomeActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        context.startActivity(intent);
-                        Runtime.getRuntime().exit(0);
-                    }
-                }
-            }
-        }).start();
+    public boolean onOptionsItemSelected(MenuItem item){
+        finish();
+        return true;
     }
 
     @Override
@@ -307,7 +373,7 @@ public class CartActivity extends AppCompatActivity {
                 break;
 
             case -1003:
-                message = "Houve um erro. Por favor, tente novamente!";
+                message = "Transação Cancelada!";
                 title = "Falha";
                 break;
 
@@ -376,7 +442,11 @@ public class CartActivity extends AppCompatActivity {
                 progress.dismiss();
                 try {
                     if(response.getString("status").contains("success")){
-                        dialogShow("Compra concluída. Obrigado por comprar conosco!", "Sucesso");
+                        if(dinheiro){
+                            dialogShow("Por favor, insira o valor em dinheiro na urna ao lado. Compra concluída, Obrigado por comprar conosco!", "Sucesso");
+                        }else{
+                            dialogShow("Compra concluída. Obrigado por comprar conosco!", "Sucesso");
+                        }
                     }else{
                         dialogShow("Falha!", response.getString("message"));
                     }
@@ -406,8 +476,11 @@ public class CartActivity extends AppCompatActivity {
         if(title == "Sucesso"){
             builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface arg0, int arg1) {
-                    Intent intent = new Intent(context, StoreActivity.class);
+                    Intent intent = new Intent(context, HomeActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    if(detectThread != null) {
+                        detectThread.interrupt();
+                    }
                     context.startActivity(intent);
                     Runtime.getRuntime().exit(0);
                 }

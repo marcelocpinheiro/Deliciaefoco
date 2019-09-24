@@ -51,7 +51,7 @@
         android:id="@+id/textView9"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text='Para continuar, digite sua senha e toque em "Finalizar Compra"'
+        android:text='Para continuar, Escolha pagar agora ou depois'
         android:textAlignment="center"
         android:textSize="20dp"
         android:layout_marginTop="160dp"/>
@@ -78,16 +78,40 @@
             android:id="@+id/btnFinalizarCompra"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Finalizar Compra"
+            android:text="Pagar Depois"
 
             />
 
+        <Button
+            android:id="@+id/btnFinalizarCompraAgora"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pagar Agora"
+
+            />
 
         <Button
             android:id="@+id/btnCancelar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cancelar" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="320dp"
+        android:layout_centerHorizontal="true">
+
+        <Button
+            android:id="@+id/btnEsqueciSenha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Esqueci minha senha" />
+
+
 
     </LinearLayout>
 

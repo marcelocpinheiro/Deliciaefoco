@@ -2,6 +2,7 @@ package com.app.deliciaefoco.deliciaefoco.Activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -20,7 +21,7 @@ import java.io.InputStreamReader;
 public class HomeActivity extends AppCompatActivity {
 
     private final String baseUrl = "http://portal.deliciaefoco.com.br/api/enterprise/";
-    String FILENAME = "enterprise_file.txt";
+    String FILENAME = "DEFAULT_COMPANY";
     Context context = this;
     ImageView imageView;
 
@@ -60,7 +61,6 @@ public class HomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent inte = new Intent(context, StoreActivity.class);
                 startActivityForResult(inte, 0);
-                finish();
             }
         });
 
@@ -82,6 +82,15 @@ public class HomeActivity extends AppCompatActivity {
                 startActivityForResult(inte, 0);
             }
         });
+
+        Button btnCadastrar = (Button) findViewById(R.id.btnCadastrar);
+        btnCadastrar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent inte = new Intent(context, SignUpActivity.class);
+                startActivityForResult(inte, 0);
+            }
+        });
     }
 
     @Override
@@ -100,14 +109,7 @@ public class HomeActivity extends AppCompatActivity {
 
 
     private int getEnterpriseId() throws IOException {
-        FileInputStream in = openFileInput(FILENAME);
-        InputStreamReader inputStreamReader = new InputStreamReader(in);
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = bufferedReader.readLine()) != null) {
-            sb.append(line);
-        }
-        return Integer.parseInt(sb.toString());
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        return settings.getInt("enterprise_id", 0);
     }
 }

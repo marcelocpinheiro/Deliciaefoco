@@ -35,18 +35,65 @@
             android:id="@+id/btnProblems"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Problemas / Sugestões"
+            android:text="Problemas/Sugestões/Tutoriais"
             android:background="@color/colorPrimary"
             android:textColor="#FFF"
             android:layout_marginBottom="15dp"/>
 
         <Button
+            android:id="@+id/btnCadastrar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cadastrar-se"
+            android:background="@color/colorPrimary"
+            android:textColor="#FFF"
+            android:layout_marginBottom="15dp"/>
+
+        <TextView
+            android:id="@+id/textView10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:text="Dados da conta bancária" />
+
+        <TextView
+            android:id="@+id/textView16"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="DELICIA e FOCO - ALIM MOTIV LTDA - ME" />
+
+        <TextView
+            android:id="@+id/textView11"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="Banco Itaú" />
+
+        <TextView
+            android:id="@+id/textView12"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="Ag 6393, CC 20429-9" />
+
+        <TextView
+            android:id="@+id/textView13"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="CNPJ: 24.974.550/0001-70" />
+
+        <!--
+        <Button
             android:id="@+id/button4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Administrativo"
-            android:layout_marginTop="400dp"
-            android:layout_gravity="bottom"/>
+            android:layout_marginTop="300dp"
+            android:layout_gravity="bottom"/> -->
+
     </LinearLayout>
 
     <ImageView

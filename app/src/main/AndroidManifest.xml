@@ -38,7 +38,9 @@
         <activity android:name=".Activities.ProblemActivity" />
         <activity android:name=".Activities.SelectEmployeeActivity" />
         <activity android:name=".Activities.GiveBackActivity" />
-        <activity android:name=".Activities.FinishGiveBackActivity"></activity>
+        <activity android:name=".Activities.FinishGiveBackActivity" />
+        <activity android:name=".Activities.SignUpActivity" />
+        <activity android:name=".Activities.TutorialActivity"></activity>
     </application>
 
 </manifest>

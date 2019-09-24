@@ -40,48 +40,37 @@
         android:textColor="#222"
         android:layout_marginBottom="10dp"/>
 
+    <Button
+        android:id="@+id/btnTutoriais"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:textColor="#222"
+        android:layout_marginBottom="10dp"
+        android:text="Tutoriais" />
+
     <TextView
         android:id="@+id/textView7"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="120dp"
-        android:textSize="30dp"
+        android:layout_marginTop="20dp"
+        android:text="Para enviar sugestões ou reclamações, encaminhe um e-mail para: "
         android:textAlignment="center"
-        android:textStyle="bold"
         android:textColor="@color/colorPrimary"
-        android:text="Para enviar sugestões ou reclamações, encaminhe um e-mail para: " />
+        android:textSize="30dp"
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="contato@deliciaefoco.com.br"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
         android:textSize="30dp"
         android:textAlignment="center"
         android:textStyle="bold"
         android:textColor="#35A"/>
-
-    <TextView
-        android:id="@+id/textView10"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:textSize="30dp"
-        android:textAlignment="center"
-        android:textStyle="bold"
-        android:textColor="@color/colorPrimary"
-        android:text="ou acesse:" />
-
-    <TextView
-        android:id="@+id/textView11"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:textSize="30dp"
-        android:textAlignment="center"
-        android:textStyle="bold"
-        android:textColor="#35A"
-        android:text="www.deliciaefoco.com.br" />
 
     <!--
     <Button
