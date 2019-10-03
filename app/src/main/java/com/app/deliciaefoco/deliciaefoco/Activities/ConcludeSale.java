@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.opengl.Visibility;
 import android.os.Bundle;
 import android.os.Handler;
@@ -67,6 +68,7 @@ public class ConcludeSale extends AppCompatActivity {
     int user_id_buyer = 6;
     PlugPag plugPag;
     int sale_id;
+    String FILENAME = "DEFAULT_COMPANY";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,6 +156,7 @@ public class ConcludeSale extends AppCompatActivity {
                             public void onResponse(JSONObject response) {
                                 try {
                                     if(response.getString("status").contains("success")){
+                                        progress.dismiss();
                                         user_id_buyer = response.getInt("user_id");
 
                                         dialog = new Dialog(context);
@@ -332,7 +335,7 @@ public class ConcludeSale extends AppCompatActivity {
                                                 if(response.getString("status").contains("success")){
                                                     dialogShow("Compra concluída. Obrigado por comprar conosco, "+selectedEmployee.nome+"!", "Sucesso");
                                                 }else{
-                                                    dialogShow("Falha!", response.getString("message"));
+                                                    dialogShow("Não foi possível concluir a compra", "Falha");
                                                 }
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
@@ -342,7 +345,7 @@ public class ConcludeSale extends AppCompatActivity {
                                         @Override
                                         public void onErrorResponse(VolleyError error){
                                             Log.d("DeliciaEFoco", "Falha ao concluir compra");
-                                            dialogShow(new String(error.networkResponse.data), "Falha!");
+                                            dialogShow("Não foi possível concluir a compra", "Falha");
                                             progress.dismiss();
                                         }
                                     });
@@ -379,9 +382,19 @@ public class ConcludeSale extends AppCompatActivity {
 
     }
 
+    private void setSaleId(int saleid, int payment){
+        sale_id = saleid;
+
+        //armazena o ultimo id nas configurações
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt("last_sale_id", saleid);
+        editor.commit();
+        continuePayment(payment);
+    }
+
     private void prePayment(int userId, final int paymentMethod){
         final RequestQueue requestQueue = Volley.newRequestQueue(context);
-        Log.d("prepayment", "++++++++++++++++++++ METODO "+ paymentMethod +"++++++++++++++++");
 
         try {
             ArrayList<ConcludeInterface> arrayConclude = new ArrayList<>();
@@ -417,8 +430,9 @@ public class ConcludeSale extends AppCompatActivity {
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
+                        Log.d("response", response.toString());
                         if(response.getString("status").contains("success")){
-                            sale_id = response.getInt("sale_id");
+                            setSaleId(response.getInt("sale_id"), paymentMethod);
                         }else{
                             dialogShow("Falha!", response.getString("message"));
                         }
@@ -434,11 +448,11 @@ public class ConcludeSale extends AppCompatActivity {
                     progress.dismiss();
                 }
             });
-
             requestQueue.add(jor);
 
         } catch (JSONException e) {
             e.printStackTrace();
+            Log.d("Erro", e.getMessage());
         }
 
     }
@@ -515,24 +529,13 @@ public class ConcludeSale extends AppCompatActivity {
         });
     }
 
-    private void payNow(int payment){
-
-        prePayment(user_id_buyer, payment);
-        Log.d("DeliciaEFoco", payment + "");
+    private void continuePayment(int payment){
+        Log.d("DeliciaEFoco", payment + " " + sale_id);
         final ProgressDialog progress = new ProgressDialog(context);
         progress.setTitle("Aguardando Pagamento ...");
-        progress.setMessage("Siga as instruções da máquina de pagamento ...");
+        progress.setMessage("Siga as instruções da máquina de pagamento ... \n" +
+                "Para cancelar, aperte o botão vermelho na maquininha");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
-        progress.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancelar Compra", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-                dialog.dismiss();
-                if(plugPag != null){
-                    //plugPag.CancelTransaction();
-                }
-            }
-        });
         progress.show();
         final int paymentMethod = payment;
 
@@ -540,12 +543,12 @@ public class ConcludeSale extends AppCompatActivity {
         final Handler handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                int result = msg.getData().getInt("what");
+                int result = msg.getData().getInt("retorno");
                 progress.dismiss();
                 try {
                     handlePaymentResult(result);
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.d("Teste_Mensagem", e.getMessage());
                 }
             }
         };
@@ -561,18 +564,31 @@ public class ConcludeSale extends AppCompatActivity {
                 plugPag.InitBTConnection();
                 plugPag.SetVersionName("DelíciaeFoco", "R001");
 
-                int ret = plugPag.SimplePaymentTransaction(
-                        method,
-                        installmentType,
-                        installment,
-                        pagSeguroValue(),
-                        codigoVenda);
+                try{
+                    int ret = plugPag.SimplePaymentTransaction(
+                            method,
+                            installmentType,
+                            installment,
+                            pagSeguroValue(),
+                            codigoVenda);
 
-                setLastTransactionValues(plugPag.getDate(), plugPag.getTime(), plugPag.getCardBrand());
-                handler.sendEmptyMessage(ret);
+
+
+                    setLastTransactionValues(plugPag.getDate(), plugPag.getTime(), plugPag.getCardBrand());
+                    Bundle b = new Bundle();
+                    b.putInt("retorno", ret);
+                    Message m = new Message();
+                    m.setData(b);
+                    handler.sendMessage(m);
+                }catch(Exception e){
+                    Log.d("Teste_Mensagem", e.getMessage() + "+++++++++++++++++++");
+                }
             }
         }).start();
+    }
 
+    private void payNow(int payment){
+        prePayment(user_id_buyer, payment);
     }
 
     private void setLastTransactionValues(String date, String time, String cardBrand){
@@ -592,19 +608,16 @@ public class ConcludeSale extends AppCompatActivity {
                     title = "Sucesso";
                     concludeSale(user_id_buyer);
                 }else{
-                    message = "Houve um erro. Por favor, tente novamente!";
-                    title = "Falha";
+                    cancelSale("Não foi possível completar a transação.");
                 }
                 break;
 
             case -1003:
-                message = "Transação Cancelada!";
-                title = "Falha";
+                cancelSale("Compra cancelada pelo usuário.");
                 break;
 
             case -1004:
-                message = "Transação Negada";
-                title = "Falha";
+                cancelSale("Transação negada.");
                 break;
 
             case -1005:
@@ -622,10 +635,56 @@ public class ConcludeSale extends AppCompatActivity {
                 title = "Falha";
                 break;
 
+            case -2023:
+                cancelSale("Não há conexão com o terminal de pagamento. Por favor, pague em dinheiro ou marque a sua compra");
+                break;
+
             default:
                 message = "Houve um erro interno. Por favor, informe ao RH";
                 title = "Erro Interno";
                 break;
+        }
+    }
+
+    private void cancelSale(String motive){
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        final RequestQueue requestQueue = Volley.newRequestQueue(context);
+        final String textMotive = motive;
+
+        if(sale_id == 0){
+            sale_id = settings.getInt("last_sale_id", 0);
+        }
+
+        try {
+            final JSONObject compraRequestBody;
+            compraRequestBody = new JSONObject("{\"sale_id\":\""+sale_id+"\"}");
+
+            JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "/deletePreSale", compraRequestBody, new Response.Listener<JSONObject>(){
+                @Override
+                public void onResponse(JSONObject response) {
+                    try {
+                        if(response.getString("status").contains("success")){
+                            dialogShow(textMotive, "Compra cancelada");
+                        }else{
+                            dialogShow("Falha!", response.getString("message"));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, new Response.ErrorListener(){
+                @Override
+                public void onErrorResponse(VolleyError error){
+                    Log.d("DeliciaEFoco", "Falha ao cance");
+                    dialogShow("Falha ao cancelar transação", "Falha!");
+                    progress.dismiss();
+                }
+            });
+
+            requestQueue.add(jor);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -732,7 +791,8 @@ public class ConcludeSale extends AppCompatActivity {
 
     private void concludeSale(int user_id) throws JSONException {
         final RequestQueue requestQueue = Volley.newRequestQueue(context);
-        String json = "{\"sale_order_ids\":["+sale_id+"]}";
+        String json = "{\"sale_order_ids\":["+sale_id+"], \"date\": \""+this.date+"\", \"time\": \""+this.time+"\", \"brand\": \""+this.cardBrand+"\"}";
+        Log.d("body", json);
         final JSONObject compraRequestBody = new JSONObject(json);
         JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "/payment", compraRequestBody, new Response.Listener<JSONObject>(){
             @Override
@@ -760,62 +820,6 @@ public class ConcludeSale extends AppCompatActivity {
             }
         });
         requestQueue.add(jor);
-
-        /*
-
-
-        ArrayList<ConcludeInterface> arrayConclude = new ArrayList<>();
-        for (int i = 0; i < produtos.size(); i++){
-            ConcludeInterface ci = new ConcludeInterface();
-            ci.price = produtos.get(i).getPrice();
-            ci.quantity = produtos.get(i).getQuantity();
-            for(int n = 0; n < lots.size(); n++){
-                if(lots.get(i).product.id == produtos.get(i).product_id){
-                    ci.id = lots.get(i).id;
-                    break;
-                }
-            }
-
-            arrayConclude.add(ci);
-        }
-
-        String textCpf = "";
-        Gson gson = new Gson();
-        String json = "{\"user_id\":\""+user_id+"\", \"products\":"+gson.toJson(arrayConclude)+", \"paid\":1, \"cpf\":\""+textCpf+"\"}";
-        Log.d("Request", json);
-        final JSONObject compraRequestBody = new JSONObject(json);
-
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "/saveSale", compraRequestBody, new Response.Listener<JSONObject>(){
-            @Override
-            public void onResponse(JSONObject response) {
-                if(progress != null){
-                    progress.dismiss();
-                }
-
-                try {
-                    if(response.getString("status").contains("success")){
-                        if(dinheiro){
-                            dialogShow("Por favor, insira o valor em dinheiro na urna ao lado. Compra concluída, Obrigado por comprar conosco!", "Sucesso");
-                        }else{
-                            dialogShow("Compra concluída. Obrigado por comprar conosco!", "Sucesso");
-                        }
-                    }else{
-                        dialogShow("Falha!", response.getString("message"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error){
-                Log.d("DeliciaEFoco", "Falha ao concluir compra");
-                dialogShow("Não foi possível concluir a compra. Por favor, tente novamente e se o problema persistir, informe ao RH o seguinte erro: " + error.networkResponse.statusCode, "Falha!");
-                progress.dismiss();
-            }
-        });
-        requestQueue.add(jor);
-        */
     }
 
     private String pagSeguroValue(){

@@ -28,23 +28,6 @@
         android:orientation="vertical">
 
         <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:text="@string/cart_subtitle"
-            android:textAlignment="center"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/txtSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="5dp"
-            android:text="@string/cart_delete_info"
-            android:textAlignment="center" />
-
-        <TextView
             android:id="@+id/textView3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -65,14 +48,15 @@
             android:textColor="@color/colorPrimary"
             android:textAlignment="center"/>
 
-        <TextView
+        <Button
+            android:id="@+id/btnPaynow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/what_do"
-            android:padding="10dp"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textAlignment="center"/>
+            android:text="@string/btnPayNow"
+            android:background="@color/colorPrimary"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="10dp"
+            style="?android:attr/selectableItemBackground"/>
 
         <EditText
             android:id="@+id/txtCpf"
@@ -87,16 +71,6 @@
             android:textSize="13sp"
             android:hint="Insira aqui seu CPF caso queira Nota Fiscal Paulista"
             />
-
-        <Button
-            android:id="@+id/btnPaynow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btnPayNow"
-            android:background="@color/colorPrimary"
-            android:textColor="@android:color/white"
-            android:layout_marginBottom="10dp"
-            style="?android:attr/selectableItemBackground"/>
 
         <Button
             android:id="@+id/btnBack"

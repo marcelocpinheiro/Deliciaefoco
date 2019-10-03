@@ -65,7 +65,7 @@ public class GiveBackActivity extends AppCompatActivity {
     String employee_name;
     ListView gv, lv;
     Button btnPay, btnPayTotalDebt;
-    String cardBrand, date, time;
+    String cardBrand = "", date = "", time = "";
     ArrayList<ProductInterface> arrayAll;
     double valorTotal = 0.0;
     double totalDebt = 0.0;
@@ -345,7 +345,7 @@ public class GiveBackActivity extends AppCompatActivity {
 
     private void concludePayment() throws JSONException {
 
-        String jsonBody = "{\"user_id\": \""+employee_id+"\", \"money\": "+money+", \"payment_method\": "+metodo+"}";
+        String jsonBody = "{\"user_id\": \""+employee_id+"\", \"money\": "+money+", \"payment_method\": "+metodo+", \"date\": \""+this.date+"\", \"time\": \""+this.time+"\", \"brand\": \""+this.cardBrand+"\"}";
 
         final RequestQueue rq = Volley.newRequestQueue(context);
         JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "payAll", new JSONObject(jsonBody), new Response.Listener<JSONObject>(){
@@ -384,7 +384,7 @@ public class GiveBackActivity extends AppCompatActivity {
             }
         }
 
-        String json = "{\"sale_order_ids\":["+soiPays+"]}";
+        String json = "{\"sale_order_ids\":["+soiPays+"], \"date\": \""+this.date+"\", \"time\": \""+this.time+"\", \"brand\": \""+this.cardBrand+"\"}";
         final JSONObject compraRequestBody = new JSONObject(json);
         Log.d("DeliciaeFoco", soiPays + "");
 
