@@ -82,8 +82,7 @@ public class FinishGiveBackActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spnMotivos.setAdapter(adapter);
 
-
-        Picasso.get().load(baseUrl + product.id).into(imgProd);
+        Picasso.with(this).load(baseUrl + product.id).into(imgProd);
 
         Button btnPlus = (Button) findViewById(R.id.buttonPlus);
         Button btnMinus = (Button) findViewById(R.id.buttonMinus);

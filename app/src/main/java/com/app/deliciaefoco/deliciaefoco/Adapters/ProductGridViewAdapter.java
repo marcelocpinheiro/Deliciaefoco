@@ -2,6 +2,7 @@ package com.app.deliciaefoco.deliciaefoco.Adapters;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +13,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.app.deliciaefoco.deliciaefoco.Interfaces.LotProductInterface;
+import com.app.deliciaefoco.deliciaefoco.Interfaces.ProductInterface;
 import com.app.deliciaefoco.deliciaefoco.R;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.math.BigDecimal;
@@ -26,6 +30,7 @@ public class ProductGridViewAdapter extends BaseAdapter implements Filterable {
     private ArrayList<LotProductInterface> list;
     private ArrayList<LotProductInterface> mList;
     CustomFilter filter;
+    private int currentPosition = 0;
     String FILENAME = "DEFAULT_COMPANY";
 
     public ProductGridViewAdapter(ArrayList<LotProductInterface> list, Context context){
@@ -58,17 +63,49 @@ public class ProductGridViewAdapter extends BaseAdapter implements Filterable {
     public View getView(int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        currentPosition = position;
 
         if(convertView == null){
             convertView = inflater.inflate(R.layout.grid_single, null);
         }
 
+        final View convertViewfinal = inflater.inflate(R.layout.grid_single, null);
+        final LotProductInterface productFinal = list.get(position);
+
         TextView textView = (TextView) convertView.findViewById(R.id.grid_text);
         ImageView imageView = (ImageView)convertView.findViewById(R.id.grid_image);
         TextView textPrice = (TextView) convertView.findViewById(R.id.grid_price);
-        textView.setText(list.get(position).product.name);
-        textPrice.setText(formatMoney(Float.parseFloat(list.get(position).product.price)));
-        Picasso.get().load(this.getBaseUrl() + list.get(position).product.id).into(imageView);
+        textView.setText(productFinal.product.name);
+
+        textPrice.setText(formatMoney(Float.parseFloat(productFinal.product.price)));
+
+        Picasso.with(context)
+                .load(this.getBaseUrl() + productFinal.product.id)
+                .networkPolicy(NetworkPolicy.OFFLINE)
+                .into(imageView, new Callback() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+                        ImageView imageView = (ImageView)convertViewfinal.findViewById(R.id.grid_image);
+                        Picasso.with(context)
+                                .load(getBaseUrl() + productFinal.product.id)
+                                .into(imageView, new Callback() {
+                                    @Override
+                                    public void onSuccess() {
+
+                                    }
+
+                                    @Override
+                                    public void onError() {
+                                        Log.e("ERROR_PICASSO", "Falha ao carregar imagem do produto " + productFinal.product.name);
+                                    }
+                                });
+                    }
+                });
 
         return convertView;
     }

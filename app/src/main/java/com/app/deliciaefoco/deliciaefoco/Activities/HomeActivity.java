@@ -49,7 +49,7 @@ public class HomeActivity extends AppCompatActivity {
 
         imageView = (ImageView) findViewById(R.id.home_image);
         try {
-            Picasso.get().load(this.getBaseUrl()+ this.getEnterpriseId() + "/image").into(imageView);
+            Picasso.with(this).load(this.getBaseUrl()+ this.getEnterpriseId() + "/image").into(imageView);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -99,7 +99,7 @@ public class HomeActivity extends AppCompatActivity {
         final View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(uiOptions);
         try {
-            Picasso.get().load(this.getBaseUrl() + this.getEnterpriseId() + "/image").into(imageView);
+            Picasso.with(this).load(this.getBaseUrl() + this.getEnterpriseId() + "/image").into(imageView);
         } catch (IOException e) {
             e.printStackTrace();
         }
