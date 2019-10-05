@@ -1,6 +1,7 @@
 package com.app.deliciaefoco.deliciaefoco.Adapters;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import com.app.deliciaefoco.deliciaefoco.R;
 import com.squareup.picasso.Picasso;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -24,7 +26,7 @@ public class ProductGridViewAdapter extends BaseAdapter implements Filterable {
     private ArrayList<LotProductInterface> list;
     private ArrayList<LotProductInterface> mList;
     CustomFilter filter;
-    private final String baseUrl = "http://portal.deliciaefoco.com.br/api/product/image/";
+    String FILENAME = "DEFAULT_COMPANY";
 
     public ProductGridViewAdapter(ArrayList<LotProductInterface> list, Context context){
         this.context = context;
@@ -47,6 +49,11 @@ public class ProductGridViewAdapter extends BaseAdapter implements Filterable {
         return this.list.get(position).id;
     }
 
+    private String getBaseUrl(){
+        SharedPreferences settings = context.getSharedPreferences(FILENAME, 0);
+        return settings.getString("base_url", "") + "/product/image/";
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context
@@ -61,7 +68,7 @@ public class ProductGridViewAdapter extends BaseAdapter implements Filterable {
         TextView textPrice = (TextView) convertView.findViewById(R.id.grid_price);
         textView.setText(list.get(position).product.name);
         textPrice.setText(formatMoney(Float.parseFloat(list.get(position).product.price)));
-        Picasso.get().load(baseUrl + list.get(position).product.id).into(imageView);
+        Picasso.get().load(this.getBaseUrl() + list.get(position).product.id).into(imageView);
 
         return convertView;
     }
@@ -96,7 +103,9 @@ public class ProductGridViewAdapter extends BaseAdapter implements Filterable {
 
                 for(int i = 0; i < mList.size(); i++){
                     LotProductInterface obj = mList.get(i);
-                    if (obj.product.name.toLowerCase().contains(constraint)) {
+
+                    if (obj.product.name.toLowerCase().contains(constraint) ||
+                            this.removerAcentos(obj.product.name.toLowerCase()).contains(constraint)) {
                         filters.add(obj);
                     }
                 }
@@ -116,6 +125,10 @@ public class ProductGridViewAdapter extends BaseAdapter implements Filterable {
         protected void publishResults(CharSequence constraint, FilterResults results) {
             list = (ArrayList<LotProductInterface>) results.values;
             notifyDataSetChanged();
+        }
+
+        private String removerAcentos(String str) {
+            return Normalizer.normalize(str, Normalizer.Form.NFD).replaceAll("[^\\p{ASCII}]", "");
         }
     }
 }

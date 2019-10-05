@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
@@ -53,8 +54,8 @@ public class GiveBackActivity extends AppCompatActivity {
     Context context;
     Dialog dialog;
     ProgressDialog progress;
+    String FILENAME = "DEFAULT_COMPANY";
     private AlertDialog alerta;
-    private final String baseUrl = "http://portal.deliciaefoco.com.br/api/";
     JSONArray sales, products;
     ArrayList<SaleOrderInterface> soi;
     SaleOrderInterface soiPayment;
@@ -348,7 +349,7 @@ public class GiveBackActivity extends AppCompatActivity {
         String jsonBody = "{\"user_id\": \""+employee_id+"\", \"money\": "+money+", \"payment_method\": "+metodo+", \"date\": \""+this.date+"\", \"time\": \""+this.time+"\", \"brand\": \""+this.cardBrand+"\"}";
 
         final RequestQueue rq = Volley.newRequestQueue(context);
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "payAll", new JSONObject(jsonBody), new Response.Listener<JSONObject>(){
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, this.getBaseUrl() + "/payAll", new JSONObject(jsonBody), new Response.Listener<JSONObject>(){
             @Override
             public void onResponse(JSONObject response){
                 progress.dismiss();
@@ -388,7 +389,7 @@ public class GiveBackActivity extends AppCompatActivity {
         final JSONObject compraRequestBody = new JSONObject(json);
         Log.d("DeliciaeFoco", soiPays + "");
 
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "payment", compraRequestBody, new Response.Listener<JSONObject>(){
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, this.getBaseUrl() + "/payment", compraRequestBody, new Response.Listener<JSONObject>(){
             @Override
             public void onResponse(JSONObject response) {
                 progress.dismiss();
@@ -485,9 +486,9 @@ public class GiveBackActivity extends AppCompatActivity {
 
         String baseurl = "";
         if(getIntent().getStringExtra("action").equals("pay")){
-            baseurl = this.baseUrl + "employee/"+employee_id+"/saleOrders/pay";
+            baseurl = this.getBaseUrl() + "/employee/"+employee_id+"/saleOrders/pay";
         }else{
-            baseurl = this.baseUrl + "employee/"+employee_id+"/saleOrders";
+            baseurl = this.getBaseUrl()+ "/employee/"+employee_id+"/saleOrders";
         }
 
         JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, baseurl, null, new Response.Listener<JSONArray>() {
@@ -577,7 +578,7 @@ public class GiveBackActivity extends AppCompatActivity {
         }
 
 
-        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.baseUrl + "saleOrder/"+sale_order_id+"/products", null, new Response.Listener<JSONArray>() {
+        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.getBaseUrl() + "/saleOrder/"+sale_order_id+"/products", null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
 
@@ -657,5 +658,10 @@ public class GiveBackActivity extends AppCompatActivity {
         });
 
         requestQueue.add(jar);
+    }
+
+    private String getBaseUrl(){
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        return settings.getString("base_url", "");
     }
 }

@@ -53,13 +53,9 @@ public class CartActivity extends AppCompatActivity {
     ArrayList<LotProductInterface> lots;
     Context context = this;
     private AlertDialog alerta;
-    Dialog dialog;
     ProgressDialog progress;
-    String cardBrand = null, date = null, time = null;
     private int lastInteractionTime;
     double currentValue;
-    private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
-    boolean dinheiro = false;
     Thread detectThread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -170,105 +166,11 @@ public class CartActivity extends AppCompatActivity {
             }
         });
 
-        /*
-        Button btnPayAfter = (Button) findViewById(R.id.btnPayAfter);
-        btnPayAfter.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                if(currentValue > 0) {
-                    Gson gson = new Gson();
-                    Intent intent = new Intent(getBaseContext(), PayAfterActivity.class);
-                    intent.putExtra("CART_ITEMS", gson.toJson(products));
-                    intent.putExtra("LOTS", gson.toJson(lots));
-                    intent.putExtra("CARTEIRA", 0);
-
-                    startActivityForResult(intent, 0);
-                }else{
-                    dialogShow("Compra sem valor. Por favor, insira algum produto.", "Atenção");
-                }
-            }
-        });
-
-    */
         Button btnPayNow = (Button) findViewById(R.id.btnPaynow);
         btnPayNow.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 selectUser();
-
-                /*
-                if(currentValue > 0){
-                    dialog = new Dialog(context);
-                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                    dialog.setContentView(R.layout.payment_dialog);
-                    dialog.show();
-                    Button btnDebit = (Button) dialog.findViewById(R.id.btnDebit);
-                    Button btnCredit = (Button) dialog.findViewById(R.id.btnCredit);
-                    Button btnVoucher = (Button) dialog.findViewById(R.id.btnVoucher);
-                    Button btnCarteira = (Button) dialog.findViewById(R.id.btnCarteira);
-                    Button btnDinheiro = (Button) dialog.findViewById(R.id.btnDinheiro);
-
-                    btnDebit.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            dialog.dismiss();
-                            payNow(PlugPag.DEBIT);
-                        }
-                    });
-
-
-                    btnCredit.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            dialog.dismiss();
-                            payNow(PlugPag.CREDIT);
-                        }
-                    });
-
-
-                    btnVoucher.setOnClickListener(new View.OnClickListener(){
-                        @Override
-                        public void onClick(View v){
-                            dialog.dismiss();
-                            payNow(3); //VOUCHER
-                        }
-                    });
-
-                    btnCarteira.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Gson gson = new Gson();
-                            Intent intent = new Intent(getBaseContext(), PayAfterActivity.class);
-                            intent.putExtra("CART_ITEMS", gson.toJson(products));
-                            intent.putExtra("LOTS", gson.toJson(lots));
-                            intent.putExtra("CARTEIRA", 1);
-
-                            startActivityForResult(intent, 0);
-                        }
-                    });
-
-                    btnDinheiro.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-
-                                        concludeSale();
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }).start();
-
-
-                        }
-                    });
-                }else{
-                    dialogShow("Compra sem valor. Por favor, insira algum produto.", "Atenção");
-                }
-                */
             }
         });
     }
@@ -307,163 +209,6 @@ public class CartActivity extends AppCompatActivity {
         this.lastInteractionTime = lastInteractionTime;
     }
 
-    private void payNow(int payment){
-        progress.show();
-        final int paymentMethod = payment;
-
-
-        final Handler handler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                int result = msg.getData().getInt("what");
-                progress.dismiss();
-                try {
-                    handlePaymentResult(result);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                int installmentType = PlugPag.A_VISTA;
-                int installment = 1;
-                int method = paymentMethod;
-                String codigoVenda = "CODIGVENDA";
-                PlugPag plugPag = new PlugPag();
-                plugPag.InitBTConnection();
-                plugPag.SetVersionName("DelíciaeFoco", "R001");
-
-                int ret = plugPag.SimplePaymentTransaction(
-                        method,
-                        installmentType,
-                        installment,
-                        pagSeguroValue(),
-                        codigoVenda);
-
-                setLastTransactionValues(plugPag.getDate(), plugPag.getTime(), plugPag.getCardBrand());
-                handler.sendEmptyMessage(ret);
-            }
-        }).start();
-
-    }
-
-    private void setLastTransactionValues(String date, String time, String cardBrand){
-        this.date = date;
-        this.time = time;
-        this.cardBrand = cardBrand;
-    }
-
-    private void handlePaymentResult(int paymentResult) throws JSONException {
-        String message = "";
-        String title = "";
-        Log.d("Mensagem de retorno", paymentResult + "");
-        switch (paymentResult){
-            case 0:
-                if(cardBrand != null){
-                    message = "Compra concluída. Muito obrigado por comprar conosco!";
-                    title = "Sucesso";
-                    concludeSale();
-                }else{
-                    message = "Houve um erro. Por favor, tente novamente!";
-                    title = "Falha";
-                }
-                break;
-
-            case -1003:
-                message = "Transação Cancelada!";
-                title = "Falha";
-                break;
-
-            case -1004:
-                message = "Transação Negada";
-                title = "Falha";
-                break;
-
-            case -1005:
-                message = "Houve um erro. Por favor, tente novamente!";
-                title = "Falha";
-                break;
-
-            case -1018:
-                message = "Houve um erro. Por favor, tente novamente!";
-                title = "Falha";
-                break;
-
-            case -2004:
-                message = "Houve um erro. Por favor, tente novamente!";
-                title = "Falha";
-                break;
-
-            default:
-                message = "Houve um erro interno. Por favor, informe ao RH";
-                title = "Erro Interno";
-                break;
-
-
-        }
-
-        if(title != "Sucesso"){
-            dialogShow(message, title);
-        }
-    }
-
-    private void concludeSale() throws JSONException {
-        final RequestQueue requestQueue = Volley.newRequestQueue(context);
-        ArrayList<ConcludeInterface> arrayConclude = new ArrayList<>();
-        for (int i = 0; i < products.size(); i++){
-            ConcludeInterface ci = new ConcludeInterface();
-            ci.price = products.get(i).getPrice();
-            ci.quantity = products.get(i).getQuantity();
-            for(int n = 0; n < lots.size(); n++){
-                if(lots.get(i).product.id == products.get(i).product_id){
-                    ci.id = lots.get(i).id;
-                    Log.d("ID DO PRODUTO", ci.id + "");
-                    break;
-                }
-            }
-
-            arrayConclude.add(ci);
-        }
-
-        EditText cpf = (EditText) findViewById(R.id.txtCpf);
-        String textCpf = cpf.getText().toString();
-        Gson gson = new Gson();
-        String json = "{\"user_id\":\"6\", \"products\":"+gson.toJson(arrayConclude)+", \"paid\":1, \"cpf\":\""+textCpf+"\"}";
-        Log.d("Request", json);
-        final JSONObject compraRequestBody = new JSONObject(json);
-
-
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "/saveSale", compraRequestBody, new Response.Listener<JSONObject>(){
-            @Override
-            public void onResponse(JSONObject response) {
-                progress.dismiss();
-                try {
-                    if(response.getString("status").contains("success")){
-                        if(dinheiro){
-                            dialogShow("Por favor, insira o valor em dinheiro na urna ao lado. Compra concluída, Obrigado por comprar conosco!", "Sucesso");
-                        }else{
-                            dialogShow("Compra concluída. Obrigado por comprar conosco!", "Sucesso");
-                        }
-                    }else{
-                        dialogShow("Falha!", response.getString("message"));
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public void onErrorResponse(VolleyError error){
-                Log.d("DeliciaEFoco", "Falha ao concluir compra");
-                dialogShow("Não foi possível concluir a compra. Por favor, tente novamente e se o problema persistir, informe ao RH o seguinte erro: " + error.networkResponse.statusCode, "Falha!");
-                progress.dismiss();
-            }
-        });
-        requestQueue.add(jor);
-    }
 
     private void dialogShow(String text, String title) {
         //Cria o gerador do AlertDialog
@@ -506,19 +251,6 @@ public class CartActivity extends AppCompatActivity {
         }
         currentValue = ret;
         return this.formatMoney(currentValue);
-    }
-
-    private String pagSeguroValue(){
-        double ret = 0.0;
-
-        for(final Product product: products){
-            ret += product.calculateTotalValue();
-        }
-
-        DecimalFormat df = new DecimalFormat("#.00");
-        String formatted = df.format(ret);
-        return  formatted.replace(".", "").replace(",", "");
-
     }
 
     private String formatMoney(double value){

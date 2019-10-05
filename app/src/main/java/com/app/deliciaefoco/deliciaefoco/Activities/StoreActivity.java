@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class StoreActivity extends AppCompatActivity implements NumberPicker.OnValueChangeListener {
-    private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
     private AlertDialog alerta;
     Context context = this;
     List<Product> cart;
@@ -182,19 +181,6 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
         final View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(uiOptions);
     }
-    
-
-    protected void onWindowFocusChanged(Boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        }
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -225,24 +211,6 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
         newFragment.show(getFragmentManager(), "Number Picker");
     }
 
-    private void exemplo_simples(String text, String title) {
-        //Cria o gerador do AlertDialog
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        //define o titulo
-        builder.setTitle(title);
-        //define a mensagem
-        builder.setMessage(text);
-        //define um botão como positivo
-        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface arg0, int arg1) {
-
-            }
-        });
-        //cria o AlertDialog
-        alerta = builder.create();
-        //Exibe
-        alerta.show();
-    }
 
     private void getProducts(){
         RequestQueue requestQueue = Volley.newRequestQueue(context);
@@ -254,7 +222,7 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
         progress.show();
 
         final ArrayList<LotProductInterface> array = new ArrayList<LotProductInterface>();
-        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.baseUrl + "/enterprise/"+enterpriseId+"/products", null, new Response.Listener<JSONArray>() {
+        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.getBaseUrl() + "/enterprise/"+enterpriseId+"/products", null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 try {
@@ -353,6 +321,11 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
         NumberFormat nf = NumberFormat.getCurrencyInstance(ptBr);
         String formatado = nf.format (valor);
         return formatado;
+    }
+
+    private String getBaseUrl(){
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        return settings.getString("base_url", "");
     }
 
 

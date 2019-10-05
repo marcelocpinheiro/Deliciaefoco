@@ -57,13 +57,11 @@ public class ConcludeSale extends AppCompatActivity {
     int carteira = 0;
     double saldo = 0;
     Context context = this;
-    private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
     private AlertDialog alerta;
     ArrayList<LotProductInterface> lots;
     TextView valueTxt;
     Dialog dialog;
     ProgressDialog progress;
-    boolean dinheiro = false;
     String cardBrand = null, date = null, time = null;
     int user_id_buyer = 6;
     PlugPag plugPag;
@@ -151,7 +149,7 @@ public class ConcludeSale extends AppCompatActivity {
 
                     try {
                         final JSONObject jsonBody = new JSONObject("{\"email\":\""+selectedEmployee.email+"\", \"password\":\""+passwordText.getText()+"\"}");
-                        JsonObjectRequest jar = new JsonObjectRequest(Request.Method.POST, baseUrl + "/checkuser", jsonBody, new Response.Listener<JSONObject>() {
+                        JsonObjectRequest jar = new JsonObjectRequest(Request.Method.POST, getBaseUrl()+ "/checkuser", jsonBody, new Response.Listener<JSONObject>() {
                             @Override
                             public void onResponse(JSONObject response) {
                                 try {
@@ -283,7 +281,7 @@ public class ConcludeSale extends AppCompatActivity {
 
                 try {
                     final JSONObject jsonBody = new JSONObject("{\"email\":\""+selectedEmployee.email+"\", \"password\":\""+passwordText.getText()+"\"}");
-                    JsonObjectRequest jar = new JsonObjectRequest(Request.Method.POST, baseUrl + "/checkuser", jsonBody, new Response.Listener<JSONObject>() {
+                    JsonObjectRequest jar = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/checkuser", jsonBody, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             try {
@@ -327,7 +325,7 @@ public class ConcludeSale extends AppCompatActivity {
                                         compraRequestBody = new JSONObject("{\"user_id\":\""+user_id+"\", \"products\":"+gson.toJson(arrayConclude)+"}");
                                     }
 
-                                    JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "/saveSale", compraRequestBody, new Response.Listener<JSONObject>(){
+                                    JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/saveSale", compraRequestBody, new Response.Listener<JSONObject>(){
                                         @Override
                                         public void onResponse(JSONObject response) {
                                             progress.dismiss();
@@ -426,7 +424,7 @@ public class ConcludeSale extends AppCompatActivity {
             final JSONObject compraRequestBody;
             compraRequestBody = new JSONObject("{\"user_id\":\""+user_id+"\", \"products\":"+gson.toJson(arrayConclude)+", \"method\": "+paymentMethod+"}");
 
-            JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "/savePreSale", compraRequestBody, new Response.Listener<JSONObject>(){
+            JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/savePreSale", compraRequestBody, new Response.Listener<JSONObject>(){
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
@@ -617,22 +615,7 @@ public class ConcludeSale extends AppCompatActivity {
                 break;
 
             case -1004:
-                cancelSale("Transação negada.");
-                break;
-
-            case -1005:
-                message = "Houve um erro. Por favor, tente novamente!";
-                title = "Falha";
-                break;
-
-            case -1018:
-                message = "Houve um erro. Por favor, tente novamente!";
-                title = "Falha";
-                break;
-
-            case -2004:
-                message = "Houve um erro. Por favor, tente novamente!";
-                title = "Falha";
+                cancelSale("Compra cancelada pelo usuário / Transação negada pelo terminal.");
                 break;
 
             case -2023:
@@ -640,8 +623,7 @@ public class ConcludeSale extends AppCompatActivity {
                 break;
 
             default:
-                message = "Houve um erro interno. Por favor, informe ao RH";
-                title = "Erro Interno";
+                cancelSale("Não foi possível concluir a sua compra. Por favor, tente novamente.");
                 break;
         }
     }
@@ -659,7 +641,7 @@ public class ConcludeSale extends AppCompatActivity {
             final JSONObject compraRequestBody;
             compraRequestBody = new JSONObject("{\"sale_id\":\""+sale_id+"\"}");
 
-            JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "/deletePreSale", compraRequestBody, new Response.Listener<JSONObject>(){
+            JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/deletePreSale", compraRequestBody, new Response.Listener<JSONObject>(){
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
@@ -721,7 +703,7 @@ public class ConcludeSale extends AppCompatActivity {
             final JSONObject compraRequestBody;
             compraRequestBody = new JSONObject("{\"user_id\":\""+user_id+"\", \"products\":"+gson.toJson(arrayConclude)+", \"method\": 4}");
 
-            JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "/savePreSale", compraRequestBody, new Response.Listener<JSONObject>(){
+            JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/savePreSale", compraRequestBody, new Response.Listener<JSONObject>(){
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
@@ -731,7 +713,7 @@ public class ConcludeSale extends AppCompatActivity {
 
                             String json = "{\"sale_order_ids\":["+sale_id+"], \"money\": true}";
                             final JSONObject compraRequestBody = new JSONObject(json);
-                            JsonObjectRequest jor_2 = new JsonObjectRequest(Request.Method.POST, baseUrl + "/payment", compraRequestBody, new Response.Listener<JSONObject>(){
+                            JsonObjectRequest jor_2 = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/payment", compraRequestBody, new Response.Listener<JSONObject>(){
                                 @Override
                                 public void onResponse(JSONObject response) {
                                     try {
@@ -794,7 +776,7 @@ public class ConcludeSale extends AppCompatActivity {
         String json = "{\"sale_order_ids\":["+sale_id+"], \"date\": \""+this.date+"\", \"time\": \""+this.time+"\", \"brand\": \""+this.cardBrand+"\"}";
         Log.d("body", json);
         final JSONObject compraRequestBody = new JSONObject(json);
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, baseUrl + "/payment", compraRequestBody, new Response.Listener<JSONObject>(){
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/payment", compraRequestBody, new Response.Listener<JSONObject>(){
             @Override
             public void onResponse(JSONObject response) {
                 try {
@@ -843,7 +825,7 @@ public class ConcludeSale extends AppCompatActivity {
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
         progress.show();
 
-        JsonObjectRequest jar = new JsonObjectRequest(Request.Method.GET, this.baseUrl + "/employee/"+selectedEmployee.id+"/saldo", null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jar = new JsonObjectRequest(Request.Method.GET, getBaseUrl() + "/employee/"+selectedEmployee.id+"/saldo", null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
@@ -923,6 +905,11 @@ public class ConcludeSale extends AppCompatActivity {
         NumberFormat nf = NumberFormat.getCurrencyInstance(ptBr);
         String formatado = nf.format (valor);
         return formatado;
+    }
+
+    private String getBaseUrl(){
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        return settings.getString("base_url", "");
     }
 
 }

@@ -50,7 +50,6 @@ public class PayAfterActivity extends AppCompatActivity {
     String FILENAME = "DEFAULT_COMPANY";
     private Integer enterpriseId = 0;
     EmployeeGridViewAdapter adapter;
-    private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
     GridView gv;
 
 
@@ -125,7 +124,7 @@ public class PayAfterActivity extends AppCompatActivity {
         progress.show();
 
 
-        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.baseUrl + "/enterprise/"+enterpriseId+"/employees", null, new Response.Listener<JSONArray>() {
+        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.getBaseUrl() + "/enterprise/"+enterpriseId+"/employees", null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 try {
@@ -180,42 +179,8 @@ public class PayAfterActivity extends AppCompatActivity {
 
     }
 
-    public void startUserInactivityDetect(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true) {
-                    try {
-                        Thread.sleep(10000); // checks every 15sec for inactivity
-                        setLastInteractionTime(getLastInteractionTime() + 10000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    if(getLastInteractionTime() >= 60000) //SE O USUARIO NÃO MEXE A 1 minuto, REINICIA O APLICATIVO
-                    {
-                        Intent intent = new Intent(context, StoreActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        context.startActivity(intent);
-                        Runtime.getRuntime().exit(0);
-                    }
-                }
-            }
-        }).start();
-    }
-
-    @Override
-    public void onUserInteraction() {
-        // TODO Auto-generated method stub
-        super.onUserInteraction();
-        setLastInteractionTime(0);
-    }
-
-    public int getLastInteractionTime() {
-        return lastInteractionTime;
-    }
-
-    public void setLastInteractionTime(int lastInteractionTime) {
-        this.lastInteractionTime = lastInteractionTime;
+    private String getBaseUrl(){
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        return settings.getString("base_url", "");
     }
 }

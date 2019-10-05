@@ -50,13 +50,11 @@ public class SelectEmployeeActivity extends AppCompatActivity {
     String FILENAME = "DEFAULT_COMPANY";
     private Integer enterpriseId = 0;
     EmployeeGridViewAdapter adapter;
-    private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
     GridView gv;
     Context context = this;
     private int lastInteractionTime;
     EmployeeInterface employee;
     Intent intent;
-    private final String baseUrlPasswd = "http://portal.deliciaefoco.com.br/api";
     ProgressDialog progress;
     private AlertDialog alerta;
 
@@ -131,7 +129,7 @@ public class SelectEmployeeActivity extends AppCompatActivity {
                             progress.show();
 
                             jsonBody = new JSONObject("{\"email\":\""+employee.email+"\", \"password\":\""+input.getText().toString()+"\"}");
-                            JsonObjectRequest jar = new JsonObjectRequest(Request.Method.POST, baseUrlPasswd + "/checkuser", jsonBody, new Response.Listener<JSONObject>() {
+                            JsonObjectRequest jar = new JsonObjectRequest(Request.Method.POST, getBaseUrl()+ "/checkuser", jsonBody, new Response.Listener<JSONObject>() {
                                 @Override
                                 public void onResponse(JSONObject response) {
                                     try {
@@ -226,7 +224,7 @@ public class SelectEmployeeActivity extends AppCompatActivity {
         progress.show();
 
 
-        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.baseUrl + "/enterprise/"+enterpriseId+"/employees", null, new Response.Listener<JSONArray>() {
+        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, getBaseUrl() + "/enterprise/"+enterpriseId+"/employees", null, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 try {
@@ -278,5 +276,10 @@ public class SelectEmployeeActivity extends AppCompatActivity {
 
         requestQueue.add(jar);
 
+    }
+
+    private String getBaseUrl(){
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        return settings.getString("base_url", "");
     }
 }

@@ -20,7 +20,6 @@ import java.io.InputStreamReader;
 
 public class HomeActivity extends AppCompatActivity {
 
-    private final String baseUrl = "http://portal.deliciaefoco.com.br/api/enterprise/";
     String FILENAME = "DEFAULT_COMPANY";
     Context context = this;
     ImageView imageView;
@@ -50,7 +49,7 @@ public class HomeActivity extends AppCompatActivity {
 
         imageView = (ImageView) findViewById(R.id.home_image);
         try {
-            Picasso.get().load(baseUrl + this.getEnterpriseId() + "/image").into(imageView);
+            Picasso.get().load(this.getBaseUrl()+ this.getEnterpriseId() + "/image").into(imageView);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -100,12 +99,16 @@ public class HomeActivity extends AppCompatActivity {
         final View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(uiOptions);
         try {
-            Picasso.get().load(baseUrl + this.getEnterpriseId() + "/image").into(imageView);
+            Picasso.get().load(this.getBaseUrl() + this.getEnterpriseId() + "/image").into(imageView);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    private String getBaseUrl() throws IOException {
+        SharedPreferences settings = getSharedPreferences(FILENAME, 0);
+        return settings.getString("base_url", "") + "/enterprise/";
+    }
 
 
     private int getEnterpriseId() throws IOException {

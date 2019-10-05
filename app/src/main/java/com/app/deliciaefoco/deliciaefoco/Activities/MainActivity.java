@@ -35,6 +35,10 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity{
+    /*
+    TODO: PARAMETRIZAR TODAS AS VARIAVEIS DE AMBIENTE EM UM ARQUIVO SEPARADO
+
+     */
     private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
     private AlertDialog alerta;
     Context context = this;
@@ -62,7 +66,13 @@ public class MainActivity extends AppCompatActivity{
         setContentView(R.layout.activity_main);
 
         SharedPreferences settings = getSharedPreferences(FILENAME, 0);
-            Log.d("enterprise_id", settings.getInt("enterprise_id", 0) + "");
+
+        if(settings.getString("base_url", null) == null){
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("base_url", this.baseUrl);
+            editor.commit();
+        }
+
         if(settings.getInt("enterprise_id", 0) != 0){
             Intent intent = new Intent(this, HomeActivity.class);
             startActivity(intent);
@@ -115,6 +125,7 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onResponse(JSONArray response) {
                 Log.d("DeliciaEFoco", "Request Finalizado");
+                Log.d("RequestResponse", response.toString());
                 List<String> spinnerArray =  new ArrayList<String>();
                 hmLang = new HashMap<String, Integer>();
                 try{
