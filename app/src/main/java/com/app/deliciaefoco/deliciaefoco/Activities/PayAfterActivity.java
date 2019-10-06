@@ -1,7 +1,9 @@
 package com.app.deliciaefoco.deliciaefoco.Activities;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
@@ -25,12 +27,15 @@ import com.app.deliciaefoco.deliciaefoco.Adapters.EmployeeGridViewAdapter;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.EmployeeInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.LotProductInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.Product;
+import com.app.deliciaefoco.deliciaefoco.Providers.ApiProvider;
+import com.app.deliciaefoco.deliciaefoco.Providers.DialogProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -51,11 +56,14 @@ public class PayAfterActivity extends AppCompatActivity {
     private Integer enterpriseId = 0;
     EmployeeGridViewAdapter adapter;
     GridView gv;
+    ApiProvider api;
+    ProgressDialog progress;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        api = new ApiProvider(this);
         setContentView(R.layout.activity_pay_after);
         setTitle(R.string.title_activity_payafter);
         //startUserInactivityDetect();
@@ -64,6 +72,7 @@ public class PayAfterActivity extends AppCompatActivity {
         Type lotsType = new TypeToken<ArrayList<LotProductInterface>>(){}.getType();
         lots = new Gson().fromJson(getIntent().getStringExtra("LOTS"), lotsType);
         gv = (GridView) findViewById(R.id.gridViewClients);
+        progress  = new ProgressDialog(context);
 
         //busca o id da empresa salvo no arquivo
         SharedPreferences settings = getSharedPreferences(FILENAME, 0);
@@ -99,24 +108,57 @@ public class PayAfterActivity extends AppCompatActivity {
         gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                EmployeeInterface employee = (EmployeeInterface) adapter.getItem(position);
-                Gson gson = new Gson();
-                Intent intent = new Intent(getBaseContext(), ConcludeSale.class);
-                intent.putExtra("PRODUTOS", gson.toJson(products));
-                intent.putExtra("EMPLOYEE", gson.toJson(employee));
-                intent.putExtra("LOTS", gson.toJson(lots));
-                intent.putExtra("CARTEIRA", getIntent().getIntExtra("CARTEIRA", 0));
-                startActivityForResult(intent, 0);
+                final EmployeeInterface employee = (EmployeeInterface) adapter.getItem(position);
+                final DialogProvider dp = new DialogProvider(context);
+                dp.promptPasswordDialogShow("Por favor " + employee.nome + ", " +
+                        "Digite sua senha",
+                        new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        progress.setTitle("Aguarde ...");
+                        progress.setMessage("Verificando credenciais ...");
+                        progress.show();
+
+                        String password = dp.getInputValue();
+                        try{
+                            api.authenticateUser(employee.email, password, new Response.Listener<JSONObject>() {
+                                @Override
+                                public void onResponse(JSONObject response) {
+                                    try{
+                                        if(response.getString("status").contains("success")){
+                                            progress.dismiss();
+                                            Gson gson = new Gson();
+                                            Intent intent = new Intent(getBaseContext(), ConcludeSale.class);
+                                            intent.putExtra("ID_USUARIO", response.getInt("user_id"));
+                                            intent.putExtra("PRODUTOS", gson.toJson(products));
+                                            intent.putExtra("EMPLOYEE", gson.toJson(employee));
+                                            intent.putExtra("LOTS", gson.toJson(lots));
+                                            intent.putExtra("CARTEIRA", getIntent().getIntExtra("CARTEIRA", 0));
+                                            startActivityForResult(intent, 0);
+                                        }else{
+                                            progress.dismiss();
+                                            dp.dialogShow("Credenciais inválidas", "Por favor, tente novamente", null);
+                                        }
+                                    }catch(JSONException e){
+                                        dp.dialogShow("Falha ao buscar usuário", "Por favor, tente novamente", null);
+                                    }
+                                }
+                            }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    dp.dialogShow("Falha ao buscar usuário", "Por favor, tente novamente", null);
+                                }
+                            });
+                        }catch(JSONException e){
+                            dp.dialogShow("Falha ao buscar usuário", "Por favor, tente novamente", null);
+                        }
+                    }
+                });
             }
         });
-
-
-
-
     }
 
     private void getEmployees(){
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
         final ProgressDialog progress = new ProgressDialog(this);
         progress.setTitle("Carregando ...");
         progress.setMessage("Aguarde enquanto carregamos os funcionários");
@@ -124,44 +166,12 @@ public class PayAfterActivity extends AppCompatActivity {
         progress.show();
 
 
-        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.getBaseUrl() + "/enterprise/"+enterpriseId+"/employees", null, new Response.Listener<JSONArray>() {
+        api.getEmployees(enterpriseId, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 try {
-
-                    employees = response;
-                    ArrayList<EmployeeInterface> array = new ArrayList<>();
-                    for(int i = 0; i < employees.length(); i++) {
-                        EmployeeInterface obj = new EmployeeInterface();
-
-                        obj.id = employees.getJSONObject(i)
-                                .getInt("id");
-
-                        obj.cpf = employees.getJSONObject(i)
-                               .getString("cpf");
-
-                        obj.email = employees.getJSONObject(i)
-                                .getString("email");
-
-                        obj.nome = employees.getJSONObject(i)
-                                .getString("nome");
-
-                        obj.telefone = employees.getJSONObject(i)
-                                .getString("telefone");
-
-                        obj.endereco = employees.getJSONObject(i)
-                                .getString("endereco");
-
-                        obj.user_id = employees.getJSONObject(i)
-                                .getString("user_id");
-
-                        array.add(obj);
-
-                    }
-                    adapter = new EmployeeGridViewAdapter(array, context);
-                    gv.setAdapter(adapter);
+                    distributeEmployees(response);
                     progress.dismiss();
-
                 } catch (JSONException e) {
                     Log.d("DeliciaEFoco", e.getMessage());
                     progress.dismiss();
@@ -174,9 +184,39 @@ public class PayAfterActivity extends AppCompatActivity {
                 progress.dismiss();
             }
         });
+    }
 
-        requestQueue.add(jar);
+    private void distributeEmployees(JSONArray employees) throws JSONException{
+        ArrayList<EmployeeInterface> array = new ArrayList<>();
+        for(int i = 0; i < employees.length(); i++) {
+            EmployeeInterface obj = new EmployeeInterface();
 
+            obj.id = employees.getJSONObject(i)
+                    .getInt("id");
+
+            obj.cpf = employees.getJSONObject(i)
+                    .getString("cpf");
+
+            obj.email = employees.getJSONObject(i)
+                    .getString("email");
+
+            obj.nome = employees.getJSONObject(i)
+                    .getString("nome");
+
+            obj.telefone = employees.getJSONObject(i)
+                    .getString("telefone");
+
+            obj.endereco = employees.getJSONObject(i)
+                    .getString("endereco");
+
+            obj.user_id = employees.getJSONObject(i)
+                    .getString("user_id");
+
+            array.add(obj);
+
+        }
+        adapter = new EmployeeGridViewAdapter(array, context);
+        gv.setAdapter(adapter);
     }
 
     private String getBaseUrl(){

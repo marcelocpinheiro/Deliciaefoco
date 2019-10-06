@@ -32,6 +32,9 @@ import com.app.deliciaefoco.deliciaefoco.Interfaces.ConcludeInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.EmployeeInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.LotProductInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.Product;
+import com.app.deliciaefoco.deliciaefoco.Providers.ApiProvider;
+import com.app.deliciaefoco.deliciaefoco.Providers.DialogProvider;
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -65,6 +68,7 @@ public class ConcludeSale extends AppCompatActivity {
     String cardBrand = null, date = null, time = null;
     int user_id_buyer = 6;
     PlugPag plugPag;
+    ApiProvider api;
     int sale_id;
     String FILENAME = "DEFAULT_COMPANY";
 
@@ -77,6 +81,7 @@ public class ConcludeSale extends AppCompatActivity {
         Type productsType = new TypeToken<List<Product>>(){}.getType();
         final Type employee = new TypeToken<EmployeeInterface>(){}.getType();
         Type lotsType = new TypeToken<ArrayList<LotProductInterface>>(){}.getType();
+        this.api = new ApiProvider(this);
 
         produtos = new Gson().fromJson(getIntent().getStringExtra("PRODUTOS"), productsType);
         selectedEmployee = new Gson().fromJson(getIntent().getStringExtra("EMPLOYEE"), employee);
@@ -92,18 +97,6 @@ public class ConcludeSale extends AppCompatActivity {
         if(this.carteira == 1){
             this.getSaldo();
         }
-
-        Button btnEsqueci = (Button) findViewById(R.id.btnEsqueciSenha);
-        if(selectedEmployee.id == 11){
-            btnEsqueci.setVisibility(View.INVISIBLE);
-        }
-        btnEsqueci.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialogShow("Acesse o link \"portal.deliciaefoco.com.br/password/reset\" \n" +
-                        "e altere a sua senha. Após isto, basta inserir aqui e concluir sua compra!", "Alterar sua senha");
-            }
-        });
 
         Button btnCancelar = (Button) findViewById(R.id.btnCancelar);
         btnCancelar.setOnClickListener(new View.OnClickListener() {
@@ -122,135 +115,76 @@ public class ConcludeSale extends AppCompatActivity {
         btnFinalizarAgora.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                Log.d("password", passwordText.getText().toString());
-                if(passwordText.getText().equals("")){
-                    dialogShow("Por favor, digite a sua senha! \n" +
-                            "Caso tenha esquecido, clique em \"Esqueci minha senha\" para alterá-la", "Insira sua senha");
-                    return;
-                }
-
                 if(selectedEmployee.id == 11){
                     payAsConvidado();
                 }else{
-                    final RequestQueue requestQueue = Volley.newRequestQueue(context);
-                    final ProgressDialog progress = new ProgressDialog(context);
-                    progress.setTitle("Aguarde ...");
-                    progress.setMessage("Verificando credenciais ...");
-                    progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+                    user_id_buyer = getIntent().getIntExtra("ID_USUARIO", 0);
+                    dialog = new Dialog(context);
+                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                    dialog.setContentView(R.layout.payment_dialog);
+                    dialog.show();
+                    Button btnDebit = (Button) dialog.findViewById(R.id.btnDebit);
+                    Button btnCredit = (Button) dialog.findViewById(R.id.btnCredit);
+                    Button btnVoucher = (Button) dialog.findViewById(R.id.btnVoucher);
+                    Button btnCarteira = (Button) dialog.findViewById(R.id.btnCarteira);
+                    Button btnDinheiro = (Button) dialog.findViewById(R.id.btnDinheiro);
+                    btnDinheiro.setText("Dinheiro / Transferência");
 
-                    try{
-                        progress.show();
-                    }catch(Exception e) {
-                        Log.d("Falha", e.getMessage());
-                    }
-
-
-
-                    try {
-                        final JSONObject jsonBody = new JSONObject("{\"email\":\""+selectedEmployee.email+"\", \"password\":\""+passwordText.getText()+"\"}");
-                        JsonObjectRequest jar = new JsonObjectRequest(Request.Method.POST, getBaseUrl()+ "/checkuser", jsonBody, new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
-                                    if(response.getString("status").contains("success")){
-                                        progress.dismiss();
-                                        user_id_buyer = response.getInt("user_id");
-
-                                        dialog = new Dialog(context);
-                                        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                                        dialog.setContentView(R.layout.payment_dialog);
-                                        dialog.show();
-                                        Button btnDebit = (Button) dialog.findViewById(R.id.btnDebit);
-                                        Button btnCredit = (Button) dialog.findViewById(R.id.btnCredit);
-                                        Button btnVoucher = (Button) dialog.findViewById(R.id.btnVoucher);
-                                        Button btnCarteira = (Button) dialog.findViewById(R.id.btnCarteira);
-                                        Button btnDinheiro = (Button) dialog.findViewById(R.id.btnDinheiro);
-                                        btnDinheiro.setText("Dinheiro / Transferência");
-
-                                        btnDebit.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                dialog.dismiss();
-                                                payNow(PlugPag.DEBIT);
-                                            }
-                                        });
+                    btnDebit.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                            payNow(PlugPag.DEBIT);
+                        }
+                    });
 
 
-                                        btnCredit.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                dialog.dismiss();
-                                                payNow(PlugPag.CREDIT);
-                                            }
-                                        });
+                    btnCredit.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                            payNow(PlugPag.CREDIT);
+                        }
+                    });
 
 
-                                        btnVoucher.setOnClickListener(new View.OnClickListener(){
-                                            @Override
-                                            public void onClick(View v){
-                                                dialog.dismiss();
-                                                payNow(3); //VOUCHER
-                                            }
-                                        });
+                    btnVoucher.setOnClickListener(new View.OnClickListener(){
+                        @Override
+                        public void onClick(View v){
+                            dialog.dismiss();
+                            payNow(3); //VOUCHER
+                        }
+                    });
 
-                                        btnCarteira.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                Gson gson = new Gson();
-                                                Intent intent = new Intent(getBaseContext(), PayAfterActivity.class);
-                                                intent.putExtra("CART_ITEMS", gson.toJson(produtos));
-                                                intent.putExtra("LOTS", gson.toJson(lots));
-                                                intent.putExtra("CARTEIRA", 1);
+                    btnCarteira.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Gson gson = new Gson();
+                            Intent intent = new Intent(getBaseContext(), PayAfterActivity.class);
+                            intent.putExtra("CART_ITEMS", gson.toJson(produtos));
+                            intent.putExtra("LOTS", gson.toJson(lots));
+                            intent.putExtra("CARTEIRA", 1);
 
-                                                startActivityForResult(intent, 0);
-                                            }
-                                        });
+                            startActivityForResult(intent, 0);
+                        }
+                    });
 
-                                        btnDinheiro.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                new Thread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        try {
+                    btnDinheiro.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
 
-                                                            concludeSale(user_id_buyer, true);
-                                                        } catch (JSONException e) {
-                                                            e.printStackTrace();
-                                                        }
-                                                    }
-                                                }).start();
-
-
-                                            }
-                                        });
-                                    }else{
-                                        dialogShow("Por favor, verifique se digitou a sua senha corretamente.", "Acesso negado");
-                                        progress.dismiss();
+                                        concludeSale(user_id_buyer, true);
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
                                     }
-                                } catch (JSONException e) {
-                                    dialogShow("Falha ao processar pedido. Por favor, Informe este problema ao RH" + e.getMessage(), "Falha");
-                                    Log.d("Falha", e.getMessage());
-                                    progress.dismiss();
                                 }
-                            }
-                        }, new Response.ErrorListener(){
-                            @Override
-                            public void onErrorResponse(VolleyError error){
-                                Log.d("DeliciaEFoco", "Falha ao buscar empresas");
-                                progress.dismiss();
-                            }
-                        });
-
-
-                        requestQueue.add(jar);
-
-                    } catch (JSONException e) {
-                        progress.dismiss();
-                        dialogShow("Falha ao processar pedido. Por favor, Informe este problema ao RH" + e.getMessage(), "Falha");
-                        Log.d("Falha", e.getMessage());
-                    }
+                            }).start();
+                        }
+                    });
                 }
             }
         });
@@ -264,116 +198,66 @@ public class ConcludeSale extends AppCompatActivity {
         btnFinalizar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                Log.d("password", passwordText.getText().toString());
-                if(passwordText.getText().equals("")){
-                    dialogShow("Por favor, digite a sua senha! \n" +
-                            "Caso tenha esquecido, clique em \"Esqueci minha senha\" para alterá-la", "Insira sua senha");
-                    return;
-                }
-
-                final RequestQueue requestQueue = Volley.newRequestQueue(context);
                 final ProgressDialog progress = new ProgressDialog(context);
+
+                progress.dismiss();
                 progress.setTitle("Aguarde ...");
-                progress.setMessage("Verificando credenciais ...");
+                progress.setMessage("Concluindo Compra ...");
                 progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
                 progress.show();
 
-                try {
-                    final JSONObject jsonBody = new JSONObject("{\"email\":\""+selectedEmployee.email+"\", \"password\":\""+passwordText.getText()+"\"}");
-                    JsonObjectRequest jar = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/checkuser", jsonBody, new Response.Listener<JSONObject>() {
+                ArrayList<ConcludeInterface> arrayConclude = new ArrayList<>();
+                for (int i = 0; i < produtos.size(); i++){
+                    ConcludeInterface ci = new ConcludeInterface();
+                    ci.price = produtos.get(i).getPrice();
+                    ci.quantity = produtos.get(i).getQuantity();
+                    for(int n = 0; n < lots.size(); n++){
+                        if(lots.get(n).product.id == produtos.get(i).product_id){
+                            ci.id = lots.get(n).id;
+                            break;
+                        }
+                    }
+
+                    Log.d("Id ci", ci.id+"");
+
+                    arrayConclude.add(ci);
+                }
+
+                int user_id = getIntent().getIntExtra("ID_USUARIO", 0);
+                double ret = 0.0;
+                for(final Product product: produtos){
+                    ret += product.calculateTotalValue();
+                }
+
+                try{
+                    api.payOff(user_id, (saldo > 0 && saldo >= ret), arrayConclude, new Response.Listener<JSONObject>(){
                         @Override
                         public void onResponse(JSONObject response) {
+                            progress.dismiss();
                             try {
                                 if(response.getString("status").contains("success")){
-                                    progress.dismiss();
-                                    progress.setTitle("Aguarde ...");
-                                    progress.setMessage("Concluindo Compra ...");
-                                    progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
-                                    progress.show();
-
-                                    ArrayList<ConcludeInterface> arrayConclude = new ArrayList<>();
-                                    for (int i = 0; i < produtos.size(); i++){
-                                        ConcludeInterface ci = new ConcludeInterface();
-                                        ci.price = produtos.get(i).getPrice();
-                                        ci.quantity = produtos.get(i).getQuantity();
-                                        for(int n = 0; n < lots.size(); n++){
-                                            if(lots.get(n).product.id == produtos.get(i).product_id){
-                                                ci.id = lots.get(n).id;
-                                                break;
-                                            }
-                                        }
-
-                                        Log.d("Id ci", ci.id+"");
-
-                                        arrayConclude.add(ci);
-                                    }
-
-                                    int user_id = response.getInt("user_id");
-                                    Gson gson = new Gson();
-
-                                    double ret = 0.0;
-                                    for(final Product product: produtos){
-                                        ret += product.calculateTotalValue();
-                                    }
-
-
-                                    final JSONObject compraRequestBody;
-                                    if(saldo > 0 && saldo >= ret){
-                                        compraRequestBody = new JSONObject("{\"user_id\":\""+user_id+"\", \"carteira\": \"1\",  \"products\":"+gson.toJson(arrayConclude)+"}");
-                                    }else{
-                                        compraRequestBody = new JSONObject("{\"user_id\":\""+user_id+"\", \"products\":"+gson.toJson(arrayConclude)+"}");
-                                    }
-
-                                    JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/saveSale", compraRequestBody, new Response.Listener<JSONObject>(){
+                                    new DialogProvider(context).dialogShow("Sucesso", "Compra concluída. Obrigado por comprar conosco, " + selectedEmployee.nome + "!", new DialogInterface.OnClickListener() {
                                         @Override
-                                        public void onResponse(JSONObject response) {
-                                            progress.dismiss();
-                                            try {
-                                                if(response.getString("status").contains("success")){
-                                                    dialogShow("Compra concluída. Obrigado por comprar conosco, "+selectedEmployee.nome+"!", "Sucesso");
-                                                }else{
-                                                    dialogShow("Não foi possível concluir a compra", "Falha");
-                                                }
-                                            } catch (JSONException e) {
-                                                e.printStackTrace();
-                                            }
-                                        }
-                                    }, new Response.ErrorListener(){
-                                        @Override
-                                        public void onErrorResponse(VolleyError error){
-                                            Log.d("DeliciaEFoco", "Falha ao concluir compra");
-                                            dialogShow("Não foi possível concluir a compra", "Falha");
-                                            progress.dismiss();
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            UtilitiesProvider.backToHome(context);
                                         }
                                     });
-
-                                    requestQueue.add(jor);
                                 }else{
-                                    dialogShow("Por favor, verifique se digitou a sua senha corretamente.", "Acesso negado");
-                                    progress.dismiss();
+                                    new DialogProvider(context).dialogShow("Falha ao salvar compra", "Por favor, tente novamente mais tarde", null);
                                 }
                             } catch (JSONException e) {
-                                dialogShow("Falha ao processar pedido. Por favor, Informe este problema ao RH" + e.getMessage(), "Falha");
-                                Log.d("Falha", e.getMessage());
-                                progress.dismiss();
+                                new DialogProvider(context).dialogShow("Falha ao salvar compra", "Por favor, tente novamente mais tarde", null);
                             }
                         }
                     }, new Response.ErrorListener(){
                         @Override
                         public void onErrorResponse(VolleyError error){
-                            Log.d("DeliciaEFoco", "Falha ao buscar empresas");
+                            new DialogProvider(context).dialogShow("Falha ao salvar compra", "Por favor, tente novamente mais tarde", null);
                             progress.dismiss();
                         }
                     });
-
-
-                    requestQueue.add(jar);
-
-                } catch (JSONException e) {
-                    progress.dismiss();
-                    dialogShow("Falha ao processar pedido. Por favor, Informe este problema ao RH" + e.getMessage(), "Falha");
-                    Log.d("Falha", e.getMessage());
+                }catch(JSONException e){
+                    new DialogProvider(context).dialogShow("Falha ao salvar compra", "Por favor, tente novamente mais tarde", null);
                 }
             }
         });
@@ -392,6 +276,7 @@ public class ConcludeSale extends AppCompatActivity {
     }
 
     private void prePayment(int userId, final int paymentMethod){
+        //TODO: PASSAR O PRÉ PAGAMENTO PARA UTILIZAR O APIPROVIDER
         final RequestQueue requestQueue = Volley.newRequestQueue(context);
 
         try {
@@ -772,6 +657,7 @@ public class ConcludeSale extends AppCompatActivity {
     }
 
     private void concludeSale(int user_id) throws JSONException {
+        //TODO: PASSAR A CONCLUSÃO DO PAGAMENTO PARA UTILIZAR API PROVIDER
         final RequestQueue requestQueue = Volley.newRequestQueue(context);
         String json = "{\"sale_order_ids\":["+sale_id+"], \"date\": \""+this.date+"\", \"time\": \""+this.time+"\", \"brand\": \""+this.cardBrand+"\"}";
         Log.d("body", json);
@@ -818,6 +704,7 @@ public class ConcludeSale extends AppCompatActivity {
     }
 
     private void getSaldo(){
+        //TODO: PASSAR A BUSCA DE SALDO PARA USAR O API PROVIDER
         RequestQueue requestQueue = Volley.newRequestQueue(context);
         final ProgressDialog progress = new ProgressDialog(this);
         progress.setTitle("Carregando ...");
@@ -861,6 +748,7 @@ public class ConcludeSale extends AppCompatActivity {
     }
 
     private void dialogShow(String text, String title) {
+        //TODO: UTILIZAR APENAS O DIALOG PROVIDER
         //Cria o gerador do AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         //define o titulo

@@ -32,6 +32,8 @@ import com.app.deliciaefoco.deliciaefoco.Adapters.CartAdapter;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.ConcludeInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.LotProductInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.Product;
+import com.app.deliciaefoco.deliciaefoco.Providers.DialogProvider;
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
@@ -85,24 +87,16 @@ public class CartActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
         setContentView(R.layout.activity_cart);
         setTitle("Carrinho - Delícia e foco");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        //detectThread.start();
 
-        progress = new ProgressDialog(context);
-
-        progress.setTitle("Aguardando pagamento...");
-        progress.setMessage("Efetue o pagamento na maquina de cartões. Caso esta compra não seja sua, cancele o pagamento na máquina de cartões apertando o botão vermelho.");
-        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
-
-        //startUserInactivityDetect();
         ListView lst = (ListView) findViewById(R.id.listCart);
         Type listType = new TypeToken<ArrayList<Product>>(){}.getType();
         Type lotsType = new TypeToken<ArrayList<LotProductInterface>>(){}.getType();
         products = new Gson().fromJson(getIntent().getStringExtra("CART_ITEMS"), listType);
         lots = new Gson().fromJson(getIntent().getStringExtra("LOTS"), lotsType);
+
         final TextView txtTotalValue = (TextView) findViewById(R.id.txtTotalValue);
         txtTotalValue.setText(getTotalValue());
         final CartAdapter ca = new CartAdapter(products, this);
@@ -116,7 +110,6 @@ public class CartActivity extends AppCompatActivity {
                 txtTotalValue.setText(formatMoney(currentValue));
             }
         });
-
         lst.setAdapter(ca);
 
 
@@ -211,37 +204,15 @@ public class CartActivity extends AppCompatActivity {
 
 
     private void dialogShow(String text, String title) {
-        //Cria o gerador do AlertDialog
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        //define o titulo
-        builder.setTitle(title);
-        //define a mensagem
-        builder.setMessage(text);
-        //define um botão como positivo
         if(title == "Sucesso"){
-            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            new DialogProvider(this).dialogShow(title, text, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface arg0, int arg1) {
-                    Intent intent = new Intent(context, HomeActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    if(detectThread != null) {
-                        detectThread.interrupt();
-                    }
-                    context.startActivity(intent);
-                    Runtime.getRuntime().exit(0);
+                    UtilitiesProvider.backToHome(context);
                 }
             });
         }else{
-            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface arg0, int arg1) {
-
-                }
-            });
+            new DialogProvider(this).dialogShow(title, text, null);
         }
-
-        //cria o AlertDialog
-        alerta = builder.create();
-        //Exibe
-        alerta.show();
     }
 
     private String getTotalValue(){

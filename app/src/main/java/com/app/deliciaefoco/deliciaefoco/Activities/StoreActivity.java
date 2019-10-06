@@ -23,17 +23,16 @@ import android.widget.GridView;
 import android.widget.NumberPicker;
 import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
+import com.app.deliciaefoco.deliciaefoco.Providers.ApiProvider;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.LotProductInterface;
 import com.app.deliciaefoco.deliciaefoco.NumberPickerDialog;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.Product;
 import com.app.deliciaefoco.deliciaefoco.Adapters.ProductGridViewAdapter;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.ProductInterface;
+import com.app.deliciaefoco.deliciaefoco.Providers.DialogProvider;
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -41,11 +40,6 @@ import com.google.gson.reflect.TypeToken;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -68,6 +62,7 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
     ArrayList<LotProductInterface> lots, lotsToSend;
     EditText txtSearch;
     Button btnCart, btnEsvaziar;
+    private DialogProvider dialog;
     //atributo da classe.
 
     @Override
@@ -98,7 +93,7 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
         });
 
 
-
+        dialog = new DialogProvider(this);
         SharedPreferences settings = getSharedPreferences(FILENAME, 0);
         this.enterpriseId = settings.getInt("enterprise_id", 0);
 
@@ -213,106 +208,112 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
 
 
     private void getProducts(){
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        Log.d("DeliciaeFoco", "Buscando os produtos");
         final ProgressDialog progress = new ProgressDialog(this);
         progress.setTitle("Carregando ...");
         progress.setMessage("Aguarde enquanto carregamos os produtos");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
         progress.show();
 
-        final ArrayList<LotProductInterface> array = new ArrayList<LotProductInterface>();
-        JsonArrayRequest jar = new JsonArrayRequest(Request.Method.GET, this.getBaseUrl() + "/enterprise/"+enterpriseId+"/products", null, new Response.Listener<JSONArray>() {
+        ApiProvider api = new ApiProvider(this);
+        api.getEnterpriseMenu(enterpriseId, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 try {
-                    Log.d("DeliciaeFoco", response.toString());
-                    GridView gv = (GridView) findViewById(R.id.gridViewStore);
-                    products = response;
-                    for(int i = 0; i < products.length(); i++){
-                        LotProductInterface obj = new LotProductInterface();
-                        ProductInterface productInterface = new ProductInterface();
-
-
-                        productInterface.id = products.getJSONObject(i)
-                                .getJSONObject("product")
-                                .getInt("id");
-
-                        productInterface.name = products.getJSONObject(i)
-                                .getJSONObject("product")
-                                .getString("name");
-
-                        productInterface.description = products.getJSONObject(i)
-                                .getJSONObject("product")
-                                .getString("description");
-
-                        productInterface.category_id = products.getJSONObject(i)
-                                .getJSONObject("product")
-                                .getString("category_id");
-
-                        productInterface.image = products.getJSONObject(i)
-                                .getJSONObject("product")
-                                .getString("image");
-
-                        productInterface.price = products.getJSONObject(i)
-                                .getJSONObject("product")
-                                .getString("price");
-
-                        productInterface.created_at = products.getJSONObject(i)
-                                .getJSONObject("product")
-                                .getString("created_at");
-
-                        productInterface.updated_at = products.getJSONObject(i)
-                                .getJSONObject("product")
-                                .getString("updated_at");
-
-
-                        obj.product = productInterface;
-
-                        obj.id = products.getJSONObject(i)
-                                .getInt("id");
-
-                        obj.created_at = products.getJSONObject(i)
-                                .getString("created_at");
-
-                        obj.enterprise_id = products.getJSONObject(i)
-                                .getString("enterprise_id");
-
-                        obj.price = products.getJSONObject(i)
-                                .getString("price");
-
-                        obj.quantity = products.getJSONObject(i)
-                                .getInt("quantity");
-
-                        obj.product_id = products.getJSONObject(i)
-                                .getString("product_id");
-
-                        obj.updated_at = products.getJSONObject(i)
-                                .getString("updated_at");
-
-                        array.add(obj);
-                    }
-
-                    lots = array;
-                    adapter = new ProductGridViewAdapter(array, context);
-                    gv.setAdapter(adapter);
+                    distributeProducts(response);
                     progress.dismiss();
-
                 } catch (JSONException e) {
-                    Log.d("Array", array.toString());
-                    Log.d("DeliciaeFoco", e.getMessage());
-                    e.printStackTrace();
+                    dialog.dialogShow("Erro", "Falha ao buscar produtos. Por favor, tente novamente.", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            UtilitiesProvider.backToHome(context);
+                        }
+                    });
                 }
             }
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
-                Log.d("DeliciaeFoco", "Falha ao buscar produtos " + error.getMessage() + " " + error.networkResponse);
+                dialog.dialogShow("Erro", "Falha ao buscar produtos \n" + error.getMessage(), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        UtilitiesProvider.backToHome(context);
+                    }
+                });
                 progress.dismiss();
             }
         });
+    }
 
-        requestQueue.add(jar);
+    private void distributeProducts(JSONArray products) throws JSONException{
+        GridView gv = (GridView) findViewById(R.id.gridViewStore);
+        final ArrayList<LotProductInterface> array = new ArrayList<LotProductInterface>();
+        for(int i = 0; i < products.length(); i++){
+            LotProductInterface obj = new LotProductInterface();
+            ProductInterface productInterface = new ProductInterface();
+
+
+            productInterface.id = products.getJSONObject(i)
+                    .getJSONObject("product")
+                    .getInt("id");
+
+            productInterface.name = products.getJSONObject(i)
+                    .getJSONObject("product")
+                    .getString("name");
+
+            productInterface.description = products.getJSONObject(i)
+                    .getJSONObject("product")
+                    .getString("description");
+
+            productInterface.category_id = products.getJSONObject(i)
+                    .getJSONObject("product")
+                    .getString("category_id");
+
+            productInterface.image = products.getJSONObject(i)
+                    .getJSONObject("product")
+                    .getString("image");
+
+            productInterface.price = products.getJSONObject(i)
+                    .getJSONObject("product")
+                    .getString("price");
+
+            productInterface.created_at = products.getJSONObject(i)
+                    .getJSONObject("product")
+                    .getString("created_at");
+
+            productInterface.updated_at = products.getJSONObject(i)
+                    .getJSONObject("product")
+                    .getString("updated_at");
+
+
+            obj.product = productInterface;
+
+            obj.id = products.getJSONObject(i)
+                    .getInt("id");
+
+            obj.created_at = products.getJSONObject(i)
+                    .getString("created_at");
+
+            obj.enterprise_id = products.getJSONObject(i)
+                    .getString("enterprise_id");
+
+            obj.price = products.getJSONObject(i)
+                    .getString("price");
+
+            obj.quantity = products.getJSONObject(i)
+                    .getInt("quantity");
+
+            obj.product_id = products.getJSONObject(i)
+                    .getString("product_id");
+
+            obj.updated_at = products.getJSONObject(i)
+                    .getString("updated_at");
+
+            array.add(obj);
+        }
+
+        lots = array;
+        adapter = new ProductGridViewAdapter(array, context);
+        gv.setAdapter(adapter);
     }
 
     private String formatMoney(double value){
@@ -327,8 +328,6 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
         SharedPreferences settings = getSharedPreferences(FILENAME, 0);
         return settings.getString("base_url", "");
     }
-
-
 
     @Override
     public void onUserInteraction() {
