@@ -206,22 +206,7 @@ public class ConcludeSale extends AppCompatActivity {
                 progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
                 progress.show();
 
-                ArrayList<ConcludeInterface> arrayConclude = new ArrayList<>();
-                for (int i = 0; i < produtos.size(); i++){
-                    ConcludeInterface ci = new ConcludeInterface();
-                    ci.price = produtos.get(i).getPrice();
-                    ci.quantity = produtos.get(i).getQuantity();
-                    for(int n = 0; n < lots.size(); n++){
-                        if(lots.get(n).product.id == produtos.get(i).product_id){
-                            ci.id = lots.get(n).id;
-                            break;
-                        }
-                    }
-
-                    Log.d("Id ci", ci.id+"");
-
-                    arrayConclude.add(ci);
-                }
+                ArrayList<ConcludeInterface> arrayConclude = arrayConcludeCreator();
 
                 int user_id = getIntent().getIntExtra("ID_USUARIO", 0);
                 double ret = 0.0;
@@ -276,40 +261,9 @@ public class ConcludeSale extends AppCompatActivity {
     }
 
     private void prePayment(int userId, final int paymentMethod){
-        //TODO: PASSAR O PRÉ PAGAMENTO PARA UTILIZAR O APIPROVIDER
-        final RequestQueue requestQueue = Volley.newRequestQueue(context);
-
         try {
-            ArrayList<ConcludeInterface> arrayConclude = new ArrayList<>();
-            for (int i = 0; i < produtos.size(); i++){
-                ConcludeInterface ci = new ConcludeInterface();
-                ci.price = produtos.get(i).getPrice();
-                ci.quantity = produtos.get(i).getQuantity();
-                for(int n = 0; n < lots.size(); n++){
-                    if(lots.get(n).product.id == produtos.get(i).product_id){
-                        ci.id = lots.get(n).id;
-                        break;
-                    }
-                }
-
-                Log.d("Id ci", ci.id+"");
-
-                arrayConclude.add(ci);
-            }
-
-            int user_id = userId;
-            Gson gson = new Gson();
-
-            double ret = 0.0;
-            for(final Product product: produtos){
-                ret += product.calculateTotalValue();
-            }
-
-
-            final JSONObject compraRequestBody;
-            compraRequestBody = new JSONObject("{\"user_id\":\""+user_id+"\", \"products\":"+gson.toJson(arrayConclude)+", \"method\": "+paymentMethod+"}");
-
-            JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/savePreSale", compraRequestBody, new Response.Listener<JSONObject>(){
+            ArrayList<ConcludeInterface> arrayConclude = this.arrayConcludeCreator();
+            api.preSale(userId, arrayConclude, paymentMethod, new Response.Listener<JSONObject>(){
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
@@ -317,25 +271,24 @@ public class ConcludeSale extends AppCompatActivity {
                         if(response.getString("status").contains("success")){
                             setSaleId(response.getInt("sale_id"), paymentMethod);
                         }else{
-                            dialogShow("Falha!", response.getString("message"));
+                            new DialogProvider(context).dialogShow("Falha", response.getString("message"), null);
+                            progress.dismiss();
                         }
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        new DialogProvider(context).dialogShow("Falha", "Não foi possível salvar sua compra. Por favor, tente novamente.", null);
+                        progress.dismiss();
                     }
                 }
             }, new Response.ErrorListener(){
                 @Override
                 public void onErrorResponse(VolleyError error){
-                    Log.d("DeliciaEFoco", "Falha ao concluir compra");
-                    dialogShow(new String(error.networkResponse.data), "Falha!");
+                    new DialogProvider(context).dialogShow("Falha", "Não foi possível salvar sua compra. Por favor, tente novamente.", null);
                     progress.dismiss();
                 }
             });
-            requestQueue.add(jor);
-
         } catch (JSONException e) {
-            e.printStackTrace();
-            Log.d("Erro", e.getMessage());
+            new DialogProvider(context).dialogShow("Falha", "Não foi possível salvar sua compra. Por favor, tente novamente.", null);
+            progress.dismiss();
         }
 
     }
@@ -480,6 +433,23 @@ public class ConcludeSale extends AppCompatActivity {
         this.cardBrand = cardBrand;
     }
 
+    private ArrayList<ConcludeInterface> arrayConcludeCreator(){
+        ArrayList<ConcludeInterface> arrayConclude = new ArrayList<>();
+        for (int i = 0; i < produtos.size(); i++){
+            ConcludeInterface ci = new ConcludeInterface();
+            ci.price = produtos.get(i).getPrice();
+            ci.quantity = produtos.get(i).getQuantity();
+            for(int n = 0; n < lots.size(); n++){
+                if(lots.get(n).product.id == produtos.get(i).product_id){
+                    ci.id = lots.get(n).id;
+                    break;
+                }
+            }
+            arrayConclude.add(ci);
+        }
+        return arrayConclude;
+    }
+
     private void handlePaymentResult(int paymentResult) throws JSONException {
         String message = "";
         String title = "";
@@ -515,7 +485,6 @@ public class ConcludeSale extends AppCompatActivity {
 
     private void cancelSale(String motive){
         SharedPreferences settings = getSharedPreferences(FILENAME, 0);
-        final RequestQueue requestQueue = Volley.newRequestQueue(context);
         final String textMotive = motive;
 
         if(sale_id == 0){
@@ -523,10 +492,7 @@ public class ConcludeSale extends AppCompatActivity {
         }
 
         try {
-            final JSONObject compraRequestBody;
-            compraRequestBody = new JSONObject("{\"sale_id\":\""+sale_id+"\"}");
-
-            JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/deletePreSale", compraRequestBody, new Response.Listener<JSONObject>(){
+            api.cancelSale(sale_id, new Response.Listener<JSONObject>(){
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
@@ -547,9 +513,6 @@ public class ConcludeSale extends AppCompatActivity {
                     progress.dismiss();
                 }
             });
-
-            requestQueue.add(jor);
-
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -560,22 +523,7 @@ public class ConcludeSale extends AppCompatActivity {
         final RequestQueue requestQueue = Volley.newRequestQueue(context);
 
         try {
-            ArrayList<ConcludeInterface> arrayConclude = new ArrayList<>();
-            for (int i = 0; i < produtos.size(); i++){
-                ConcludeInterface ci = new ConcludeInterface();
-                ci.price = produtos.get(i).getPrice();
-                ci.quantity = produtos.get(i).getQuantity();
-                for(int n = 0; n < lots.size(); n++){
-                    if(lots.get(n).product.id == produtos.get(i).product_id){
-                        ci.id = lots.get(n).id;
-                        break;
-                    }
-                }
-
-                Log.d("Id ci", ci.id+"");
-
-                arrayConclude.add(ci);
-            }
+            ArrayList<ConcludeInterface> arrayConclude = this.arrayConcludeCreator();
 
             Gson gson = new Gson();
 

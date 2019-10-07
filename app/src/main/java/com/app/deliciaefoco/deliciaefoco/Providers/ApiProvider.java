@@ -66,6 +66,28 @@ public class ApiProvider {
                 compraRequestBody,
                 listener,
                 errorListener);
+        this.requestQueue.add(jor);
+    }
+
+    public void preSale(int userId, ArrayList<ConcludeInterface> arrayConclude, int method, Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) throws JSONException{
+        JSONObject compraRequestBody = new JSONObject("{\"user_id\":\""+userId+"\", \"products\":"+gson.toJson(arrayConclude)+", \"method\": "+method+"}");
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST,
+                this.getBaseUrl() + "/savePreSale",
+                compraRequestBody,
+                listener,
+                errorListener);
+        this.requestQueue.add(jor);
+    }
+
+    public void cancelSale(int saleId, Response.Listener<JSONObject> listener, Response.ErrorListener eListener) throws JSONException{
+        JSONObject compraRequestBody = new JSONObject("{\"sale_id\":\""+saleId+"\"}");
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST,
+                this.getBaseUrl() + "/deletePreSale",
+                compraRequestBody,
+                listener,
+                eListener);
+        this.requestQueue.add(jor);
+
     }
 
     private String getBaseUrl(){
