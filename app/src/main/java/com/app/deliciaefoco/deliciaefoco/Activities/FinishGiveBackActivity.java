@@ -24,6 +24,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.ConcludeInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.ProductInterface;
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -163,6 +164,7 @@ public class FinishGiveBackActivity extends AppCompatActivity {
                                     dialogShow("Acesso Negado", "Falha");
                                 }
                             } catch (JSONException e) {
+                                UtilitiesProvider.trackException(e);
                                 dialogShow("Falha ao processar pedido. Por favor, Informe este problema ao RH: " + e.getMessage(), "Falha");
                                 Log.d("Falha", e.getMessage());
                                 progress.dismiss();
@@ -180,6 +182,7 @@ public class FinishGiveBackActivity extends AppCompatActivity {
                     requestQueue.add(jar);
 
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     e.printStackTrace();
                 }
 
@@ -206,6 +209,7 @@ public class FinishGiveBackActivity extends AppCompatActivity {
                             dialogShow("Falha ao devolver produto. Por favor, insira manualmente a sua devolução.", "Falha");
                         }
                     } catch (JSONException e) {
+                        UtilitiesProvider.trackException(e);
                         dialogShow("Falha ao devolver produto. Por favor, insira manualmente a sua devolução.", "Falha");
                         e.printStackTrace();
                     }
@@ -220,6 +224,7 @@ public class FinishGiveBackActivity extends AppCompatActivity {
 
             requestQueue.add(jarGiveBack);
         } catch (JSONException e) {
+            UtilitiesProvider.trackException(e);
             e.printStackTrace();
             dialogShow("Falha ao devolver produto. Por favor, insira manualmente a sua devolução.", "Falha");
         }

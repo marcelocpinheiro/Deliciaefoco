@@ -10,6 +10,7 @@ import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.squareup.picasso.Picasso;
 
@@ -51,6 +52,7 @@ public class SignUpActivity extends AppCompatActivity {
         try {
             webView.loadUrl("http://portal.deliciaefoco.com.br/cadastro/" + getEnterpriseId());
         } catch (IOException e) {
+            UtilitiesProvider.trackException(e);
             e.printStackTrace();
         }
         WebViewClient wvc = new WebViewClient();

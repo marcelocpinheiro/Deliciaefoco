@@ -222,6 +222,7 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
                     distributeProducts(response);
                     progress.dismiss();
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     dialog.dialogShow("Erro", "Falha ao buscar produtos. Por favor, tente novamente.", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

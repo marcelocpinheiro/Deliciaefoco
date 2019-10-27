@@ -66,6 +66,7 @@ public class CartActivity extends AppCompatActivity {
                     Thread.sleep(10000); // checks every 15sec for inactivity
                     setLastInteractionTime(getLastInteractionTime() + 10000);
                 } catch (InterruptedException e) {
+                    UtilitiesProvider.trackException(e);
                     e.printStackTrace();
                 }
 

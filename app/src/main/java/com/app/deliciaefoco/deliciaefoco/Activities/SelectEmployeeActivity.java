@@ -27,6 +27,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.app.deliciaefoco.deliciaefoco.Adapters.EmployeeGridViewAdapter;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.EmployeeInterface;
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.google.gson.Gson;
 
@@ -155,6 +156,7 @@ public class SelectEmployeeActivity extends AppCompatActivity {
                                             dialogShow("Acesso Negado", "Falha");
                                         }
                                     } catch (JSONException e) {
+                                        UtilitiesProvider.trackException(e);
                                         e.printStackTrace();
                                     }
                                 }
@@ -167,6 +169,7 @@ public class SelectEmployeeActivity extends AppCompatActivity {
                             });
                             requestQueue.add(jar);
                         } catch (JSONException e) {
+                            UtilitiesProvider.trackException(e);
                             e.printStackTrace();
                         }
                     }
@@ -263,6 +266,7 @@ public class SelectEmployeeActivity extends AppCompatActivity {
                     progress.dismiss();
 
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     e.printStackTrace();
                 }
             }

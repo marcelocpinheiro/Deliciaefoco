@@ -32,6 +32,7 @@ import com.app.deliciaefoco.deliciaefoco.Interfaces.ConcludeInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.Product;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.ProductInterface;
 import com.app.deliciaefoco.deliciaefoco.Adapters.ProductListAdapter;
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.app.deliciaefoco.deliciaefoco.Adapters.SaleListAdapter;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.SaleOrderInterface;
@@ -232,6 +233,7 @@ public class GiveBackActivity extends AppCompatActivity {
                             money = true;
                             concludePayment(soiPayment.id);
                         } catch (JSONException e) {
+                            UtilitiesProvider.trackException(e);
                             e.printStackTrace();
                         }
                     }
@@ -251,6 +253,7 @@ public class GiveBackActivity extends AppCompatActivity {
                 try {
                     handlePaymentResult(result);
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     Log.d("DeliciaeFoco", e.getMessage());
                 }
             }
@@ -360,6 +363,7 @@ public class GiveBackActivity extends AppCompatActivity {
                         dialogShow("Falha!", response.getString("message"));
                     }
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     Log.d("DeliciaeFoco", e.getMessage() + "");
                 }
             }
@@ -400,6 +404,7 @@ public class GiveBackActivity extends AppCompatActivity {
                         dialogShow("Falha!", response.getString("message"));
                     }
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     Log.d("DeliciaeFoco", e.getMessage() + "");
                 }
             }
@@ -539,6 +544,7 @@ public class GiveBackActivity extends AppCompatActivity {
                     progress.dismiss();
 
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     Log.d("DeliciaEFoco", "Falha ao buscar compras" + e.getMessage());
                     e.printStackTrace();
                 }
@@ -646,6 +652,7 @@ public class GiveBackActivity extends AppCompatActivity {
                     progress.dismiss();
 
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     e.printStackTrace();
                 }
             }

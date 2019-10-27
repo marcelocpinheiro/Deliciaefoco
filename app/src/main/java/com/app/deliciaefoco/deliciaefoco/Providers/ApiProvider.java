@@ -94,6 +94,46 @@ public class ApiProvider {
 
     }
 
+    public void payment(int[] saleOrders, String date, String time, String brand, Response.Listener<JSONObject> listener, Response.ErrorListener eListener) throws JSONException {
+        String saleOrdersArray = "[";
+        for (int i = 0; i < saleOrders.length; i++) {
+            if (saleOrdersArray.equals("[")) {
+                saleOrdersArray = saleOrdersArray + saleOrders[i];
+            } else {
+                saleOrdersArray += saleOrdersArray + ", " + saleOrders[i];
+            }
+        }
+        saleOrdersArray = saleOrdersArray + "]";
+        String json = "{\"sale_order_ids\":" + saleOrdersArray + ", \"date\": \"" + date + "\", \"time\": \"" + time + "\", \"brand\": \"" + brand + "\"}";
+        JSONObject compraRequestBody = new JSONObject(json);
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST,
+                this.getBaseUrl() + "/payment",
+                compraRequestBody,
+                listener,
+                eListener);
+        this.requestQueue.add(jor);
+    }
+
+    public void paymentMoney(int[] saleOrders, Response.Listener<JSONObject> listener, Response.ErrorListener eListener) throws JSONException {
+        String saleOrdersArray = "[";
+        for (int i = 0; i < saleOrders.length; i++) {
+            if (saleOrdersArray.equals("[")) {
+                saleOrdersArray = saleOrdersArray + saleOrders[i];
+            } else {
+                saleOrdersArray += saleOrdersArray + ", " + saleOrders[i];
+            }
+        }
+        saleOrdersArray = saleOrdersArray + "]";
+        String json = "{\"sale_order_ids\":" + saleOrdersArray + ", \"money\": true}";
+        JSONObject compraRequestBody = new JSONObject(json);
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST,
+                this.getBaseUrl() + "/payment",
+                compraRequestBody,
+                listener,
+                eListener);
+        this.requestQueue.add(jor);
+    }
+
     private String getBaseUrl(){
         SharedPreferences settings = this.context.getSharedPreferences(FILENAME, 0);
         return settings.getString("base_url", "");

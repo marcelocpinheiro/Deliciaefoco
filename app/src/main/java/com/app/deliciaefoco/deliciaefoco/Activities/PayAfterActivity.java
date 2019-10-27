@@ -24,6 +24,7 @@ import com.app.deliciaefoco.deliciaefoco.Interfaces.LotProductInterface;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.Product;
 import com.app.deliciaefoco.deliciaefoco.Providers.ApiProvider;
 import com.app.deliciaefoco.deliciaefoco.Providers.DialogProvider;
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -143,6 +144,7 @@ public class PayAfterActivity extends AppCompatActivity {
                                             dp.dialogShow("Credenciais inválidas", "Por favor, tente novamente", null);
                                         }
                                     }catch(JSONException e){
+                                        UtilitiesProvider.trackException(e);
                                         dp.dialogShow("Falha ao buscar usuário", "Por favor, tente novamente", null);
                                     }
                                 }
@@ -153,6 +155,7 @@ public class PayAfterActivity extends AppCompatActivity {
                                 }
                             });
                         }catch(JSONException e){
+                            UtilitiesProvider.trackException(e);
                             dp.dialogShow("Falha ao buscar usuário", "Por favor, tente novamente", null);
                         }
                     }
@@ -176,6 +179,7 @@ public class PayAfterActivity extends AppCompatActivity {
                     distributeEmployees(response);
                     progress.dismiss();
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     Log.d("DeliciaEFoco", e.getMessage());
                     progress.dismiss();
                 }

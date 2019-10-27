@@ -10,6 +10,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 import com.squareup.picasso.Picasso;
 
@@ -51,6 +52,7 @@ public class HomeActivity extends AppCompatActivity {
         try {
             Picasso.with(this).load(this.getBaseUrl()+ this.getEnterpriseId() + "/image").into(imageView);
         } catch (IOException e) {
+            UtilitiesProvider.trackException(e);
             e.printStackTrace();
         }
 
@@ -101,6 +103,7 @@ public class HomeActivity extends AppCompatActivity {
         try {
             Picasso.with(this).load(this.getBaseUrl() + this.getEnterpriseId() + "/image").into(imageView);
         } catch (IOException e) {
+            UtilitiesProvider.trackException(e);
             e.printStackTrace();
         }
     }

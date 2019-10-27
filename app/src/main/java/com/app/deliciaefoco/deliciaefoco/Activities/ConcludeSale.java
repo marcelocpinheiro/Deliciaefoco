@@ -184,9 +184,9 @@ public class ConcludeSale extends AppCompatActivity {
 
                                         concludeSale(user_id_buyer, true);
                                     } catch (JSONException e) {
-                                        e.printStackTrace();
+                                        UtilitiesProvider.trackException(e);
                                     } catch (IOException e) {
-                                        e.printStackTrace();
+                                        UtilitiesProvider.trackException(e);
                                     }
                                 }
                             }).start();
@@ -238,17 +238,20 @@ public class ConcludeSale extends AppCompatActivity {
                                     new DialogProvider(context).dialogShow("Falha ao salvar compra 1", "Por favor, tente novamente mais tarde", null);
                                 }
                             } catch (JSONException e) {
+                                UtilitiesProvider.trackException(e);
                                 new DialogProvider(context).dialogShow("Falha ao salvar compra 2", "Por favor, tente novamente mais tarde", null);
                             }
                         }
                     }, new Response.ErrorListener(){
                         @Override
                         public void onErrorResponse(VolleyError error){
+
                             new DialogProvider(context).dialogShow("Falha ao salvar compra 3", "Por favor, tente novamente mais tarde", null);
                             progress.dismiss();
                         }
                     });
                 }catch(JSONException e){
+                    UtilitiesProvider.trackException(e);
                     new DialogProvider(context).dialogShow("Falha ao salvar compra 4", "Por favor, tente novamente mais tarde", null);
                 }
             }
@@ -282,6 +285,7 @@ public class ConcludeSale extends AppCompatActivity {
                             progress.dismiss();
                         }
                     } catch (JSONException e) {
+                        UtilitiesProvider.trackException(e);
                         new DialogProvider(context).dialogShow("Falha", "Não foi possível salvar sua compra. Por favor, tente novamente.", null);
                         progress.dismiss();
                     }
@@ -294,6 +298,7 @@ public class ConcludeSale extends AppCompatActivity {
                 }
             });
         } catch (JSONException e) {
+            UtilitiesProvider.trackException(e);
             new DialogProvider(context).dialogShow("Falha", "Não foi possível salvar sua compra. Por favor, tente novamente.", null);
             progress.dismiss();
         }
@@ -362,8 +367,10 @@ public class ConcludeSale extends AppCompatActivity {
 
                             concludeSale(user_id_buyer, true);
                         } catch (JSONException e) {
+                            UtilitiesProvider.trackException(e);
                             e.printStackTrace();
                         } catch (IOException e) {
+                            UtilitiesProvider.trackException(e);
                             e.printStackTrace();
                         }
                     }
@@ -393,6 +400,7 @@ public class ConcludeSale extends AppCompatActivity {
                 try {
                     handlePaymentResult(result);
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                     Log.d("Teste_Mensagem", e.getMessage());
                 }
             }
@@ -410,11 +418,17 @@ public class ConcludeSale extends AppCompatActivity {
                 plugPag.SetVersionName("DelíciaeFoco", "R001");
 
                 try{
+                    double value = 0.0;
+                    for (final Product product : produtos) {
+                        value += product.calculateTotalValue();
+                    }
+
+
                     int ret = plugPag.SimplePaymentTransaction(
                             method,
                             installmentType,
                             installment,
-                            pagSeguroValue(),
+                            UtilitiesProvider.pagSeguroValue(value, context),
                             codigoVenda);
 
 
@@ -426,6 +440,7 @@ public class ConcludeSale extends AppCompatActivity {
                     m.setData(b);
                     handler.sendMessage(m);
                 }catch(Exception e){
+                    UtilitiesProvider.trackException(e);
                     Log.d("Teste_Mensagem", e.getMessage() + "+++++++++++++++++++");
                 }
             }
@@ -436,6 +451,7 @@ public class ConcludeSale extends AppCompatActivity {
         try {
             prePayment(user_id_buyer, payment);
         } catch (IOException e) {
+            UtilitiesProvider.trackException(e);
             e.printStackTrace();
         }
     }
@@ -515,6 +531,7 @@ public class ConcludeSale extends AppCompatActivity {
                             dialogShow("Falha!", response.getString("message"));
                         }
                     } catch (JSONException e) {
+                        UtilitiesProvider.trackException(e);
                         e.printStackTrace();
                     }
                 }
@@ -527,6 +544,7 @@ public class ConcludeSale extends AppCompatActivity {
                 }
             });
         } catch (JSONException e) {
+            UtilitiesProvider.trackException(e);
             e.printStackTrace();
         }
     }
@@ -553,11 +571,7 @@ public class ConcludeSale extends AppCompatActivity {
                     try {
                         if(response.getString("status").contains("success")){
                             sale_id = response.getInt("sale_id");
-
-
-                            String json = "{\"sale_order_ids\":["+sale_id+"], \"money\": true}";
-                            final JSONObject compraRequestBody = new JSONObject(json);
-                            JsonObjectRequest jor_2 = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/payment", compraRequestBody, new Response.Listener<JSONObject>(){
+                            api.paymentMoney(new int[]{sale_id}, new Response.Listener<JSONObject>() {
                                 @Override
                                 public void onResponse(JSONObject response) {
                                     try {
@@ -577,6 +591,7 @@ public class ConcludeSale extends AppCompatActivity {
                                             dialogShow(response.getString("message"), "Falha!");
                                         }
                                     } catch (JSONException e) {
+                                        UtilitiesProvider.trackException(e);
                                         Log.d("DeliciaeFoco", e.getMessage() + "");
                                     }
                                 }
@@ -593,13 +608,11 @@ public class ConcludeSale extends AppCompatActivity {
                                             "Não foi possível concluir o pagamento em dinheiro");
                                 }
                             });
-                            requestQueue.add(jor_2);
-
                         }else{
                             dialogShow("Falha!", response.getString("message"));
                         }
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        UtilitiesProvider.trackException(e);
                     }
                 }
             }, new Response.ErrorListener(){
@@ -610,16 +623,12 @@ public class ConcludeSale extends AppCompatActivity {
                 }
             });
         } catch (JSONException e) {
-            e.printStackTrace();
+            UtilitiesProvider.trackException(e);
         }
     }
 
     private void concludeSale(int user_id) throws JSONException {
-        //TODO: PASSAR A CONCLUSÃO DO PAGAMENTO PARA UTILIZAR API PROVIDER
-        final RequestQueue requestQueue = Volley.newRequestQueue(context);
-        String json = "{\"sale_order_ids\":["+sale_id+"], \"date\": \""+this.date+"\", \"time\": \""+this.time+"\", \"brand\": \""+this.cardBrand+"\"}";
-        final JSONObject compraRequestBody = new JSONObject(json);
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, getBaseUrl() + "/payment", compraRequestBody, new Response.Listener<JSONObject>(){
+        api.payment(new int[]{sale_id}, this.date, this.time, this.cardBrand, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
@@ -632,6 +641,7 @@ public class ConcludeSale extends AppCompatActivity {
                         dialogShow("Falha!", response.getString("message"));
                     }
                 } catch (JSONException e) {
+                    UtilitiesProvider.trackException(e);
                 }
             }
         }, new Response.ErrorListener(){
@@ -646,7 +656,6 @@ public class ConcludeSale extends AppCompatActivity {
                         "Não foi possível concluir o pagamento");
             }
         });
-        requestQueue.add(jor);
     }
 
     private String pagSeguroValue(){
@@ -690,7 +699,7 @@ public class ConcludeSale extends AppCompatActivity {
 
                     progress.dismiss();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    UtilitiesProvider.trackException(e);
                 }
             }
         }, new Response.ErrorListener(){

@@ -19,6 +19,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
+import com.app.deliciaefoco.deliciaefoco.Providers.UtilitiesProvider;
 import com.app.deliciaefoco.deliciaefoco.R;
 
 import java.io.File;
@@ -34,16 +35,21 @@ import android.widget.Spinner;
 import java.util.HashMap;
 import java.util.List;
 
+import io.sentry.Sentry;
+import io.sentry.event.UserBuilder;
+
 public class MainActivity extends AppCompatActivity{
     /*
     TODO: PARAMETRIZAR TODAS AS VARIAVEIS DE AMBIENTE EM UM ARQUIVO SEPARADO
 
      */
-    private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
+    private final String baseUrl = "http://portal-hom.deliciaefoco.com.br/api";
+    private final String env = "HOM";
     private AlertDialog alerta;
     Context context = this;
     HashMap<String ,Integer> hmLang;
     String FILENAME = "DEFAULT_COMPANY";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +85,12 @@ public class MainActivity extends AppCompatActivity{
             finish();
         }else{
             this.getEnterprises();
+        }
+
+        if (settings.getString("env", null) == null) {
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString("env", this.env);
+            editor.commit();
         }
 
         Button btn = (Button) findViewById(R.id.button);
@@ -143,6 +155,7 @@ public class MainActivity extends AppCompatActivity{
                     sItems.setAdapter(adapter);
                     progress.dismiss();
                 }catch (JSONException e){
+                    UtilitiesProvider.trackException(e);
                     e.printStackTrace();
                     Log.d("DeliciaEFoco", "Falha no JSON");
                     progress.dismiss();
