@@ -2,6 +2,7 @@ package com.app.deliciaefoco.deliciaefoco.Providers;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,6 +17,7 @@ import com.android.volley.toolbox.Volley;
 import com.app.deliciaefoco.deliciaefoco.Interfaces.ConcludeInterface;
 import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -60,7 +62,9 @@ public class ApiProvider {
     }
 
     public void payOff(int userId, boolean isCarteira, ArrayList<ConcludeInterface> arrayConclude, Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) throws JSONException{
-        final JSONObject compraRequestBody = new JSONObject("{\"user_id\":\""+userId+"\", \"carteira\": \""+isCarteira+"\",  \"products\":"+gson.toJson(arrayConclude)+"}");
+        String body = "{\"user_id\":\"" + userId + "\", \"carteira\": \"" + isCarteira + "\",  \"products\":" + gson.toJson(arrayConclude) + "}";
+        Log.d("Body", body);
+        final JSONObject compraRequestBody = new JSONObject(body);
         JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST,
                 this.getBaseUrl() + "/saveSale",
                 compraRequestBody,
@@ -69,8 +73,8 @@ public class ApiProvider {
         this.requestQueue.add(jor);
     }
 
-    public void preSale(int userId, ArrayList<ConcludeInterface> arrayConclude, int method, Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) throws JSONException{
-        JSONObject compraRequestBody = new JSONObject("{\"user_id\":\""+userId+"\", \"products\":"+gson.toJson(arrayConclude)+", \"method\": "+method+"}");
+    public void preSale(int userId, ArrayList<ConcludeInterface> arrayConclude, int method, Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) throws JSONException, IOException {
+        JSONObject compraRequestBody = new JSONObject("{\"user_id\":\"" + userId + "\", \"products\":" + gson.toJson(arrayConclude) + ", \"method\": " + method + ", \"enterprise_id\": " + this.getEnterpriseId() + "}");
         JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST,
                 this.getBaseUrl() + "/savePreSale",
                 compraRequestBody,
@@ -93,6 +97,11 @@ public class ApiProvider {
     private String getBaseUrl(){
         SharedPreferences settings = this.context.getSharedPreferences(FILENAME, 0);
         return settings.getString("base_url", "");
+    }
+
+    private int getEnterpriseId() throws IOException {
+        SharedPreferences settings = this.context.getSharedPreferences(FILENAME, 0);
+        return settings.getInt("enterprise_id", 0);
     }
 
 

@@ -12,4 +12,5 @@ public class UtilitiesProvider {
         context.startActivity(intent);
         Runtime.getRuntime().exit(0);
     }
+
 }
