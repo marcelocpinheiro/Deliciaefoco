@@ -43,8 +43,8 @@ public class MainActivity extends AppCompatActivity{
     TODO: PARAMETRIZAR TODAS AS VARIAVEIS DE AMBIENTE EM UM ARQUIVO SEPARADO
 
      */
-    private final String baseUrl = "http://portal-hom.deliciaefoco.com.br/api";
-    private final String env = "HOM";
+    private final String baseUrl = "http://portal.deliciaefoco.com.br/api";
+    private final String env = "PROD";
     private AlertDialog alerta;
     Context context = this;
     HashMap<String ,Integer> hmLang;

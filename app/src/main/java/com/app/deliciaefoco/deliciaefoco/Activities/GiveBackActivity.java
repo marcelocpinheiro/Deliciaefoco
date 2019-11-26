@@ -248,7 +248,7 @@ public class GiveBackActivity extends AppCompatActivity {
         final Handler handler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
-                int result = msg.getData().getInt("what");
+                int result = msg.getData().getInt("ret");
                 progress.dismiss();
                 try {
                     handlePaymentResult(result);
@@ -262,6 +262,7 @@ public class GiveBackActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+
                 int installmentType = PlugPag.A_VISTA;
                 int installment = 1;
                 int method = paymentMethod;
@@ -275,11 +276,16 @@ public class GiveBackActivity extends AppCompatActivity {
                         method,
                         installmentType,
                         installment,
-                        pagSeguroValue(valorTotal),
+                        UtilitiesProvider.pagSeguroValue(valorTotal, context),
                         codigoVenda);
 
                 setLastTransactionValues(plugPag.getDate(), plugPag.getTime(), plugPag.getCardBrand());
-                handler.sendEmptyMessage(ret);
+                Bundle b = new Bundle();
+                b.putInt("ret", ret);
+                Message m = new Message();
+                m.setData(b);
+                handler.sendMessage(m);
+
             }
         }).start();
     }
@@ -300,11 +306,13 @@ public class GiveBackActivity extends AppCompatActivity {
 
         String message = "";
         String title = "";
+        boolean show = false;
         switch (paymentResult){
             case 0:
                 if(cardBrand != null){
                     message = "Pagamento realizado. Muito obrigado por comprar conosco!";
                     title = "Sucesso";
+
                     if(isTotal){
                         concludePayment();
                     }else{
@@ -313,43 +321,54 @@ public class GiveBackActivity extends AppCompatActivity {
                 }else{
                     message = "Houve um erro. Por favor, tente novamente!";
                     title = "Falha";
+                    show = true;
                 }
                 break;
 
             case -1003:
                 message = "Houve um erro. Por favor, tente novamente!";
                 title = "Falha";
+                show = true;
                 break;
 
             case -1004:
                 message = "Transação Negada";
                 title = "Falha";
+                show = true;
                 break;
 
             case -1005:
                 message = "Houve um erro. Por favor, tente novamente!";
                 title = "Falha";
+                show = true;
                 break;
 
             case -1018:
                 message = "Houve um erro. Por favor, tente novamente!";
                 title = "Falha";
+                show = true;
                 break;
 
             default:
                 message = "Houve um erro interno. Por favor, informe ao RH";
                 title = "Erro Interno";
+                show = true;
                 break;
-
-
         }
 
-        dialogShow(message, title);
+        if (show) dialogShow(message, title);
     }
 
     private void concludePayment() throws JSONException {
 
+        progress = new ProgressDialog(this);
+        progress.setTitle("Carregando ...");
+        progress.setMessage("Processando pagamento");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+        progress.show();
+
         String jsonBody = "{\"user_id\": \""+employee_id+"\", \"money\": "+money+", \"payment_method\": "+metodo+", \"date\": \""+this.date+"\", \"time\": \""+this.time+"\", \"brand\": \""+this.cardBrand+"\"}";
+        Log.d("JSON", jsonBody);
 
         final RequestQueue rq = Volley.newRequestQueue(context);
         JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, this.getBaseUrl() + "/payAll", new JSONObject(jsonBody), new Response.Listener<JSONObject>(){
@@ -370,6 +389,7 @@ public class GiveBackActivity extends AppCompatActivity {
         }, new Response.ErrorListener(){
             @Override
             public void onErrorResponse(VolleyError error){
+                UtilitiesProvider.trackException(error);
                 Log.d("DeliciaeFoco", error.networkResponse  +  "");
                 dialogShow("Não foi possível concluir o pagamento. Por favor, guarde o seu comprovante e nos envie por e-mail (contato@deliciaefoco.com.br) para podermos fazer a baixa. Pedimos perdão pelo transtorno.", "Falha!");
                 progress.dismiss();
@@ -379,6 +399,13 @@ public class GiveBackActivity extends AppCompatActivity {
     }
 
     private void concludePayment(int soi_id) throws JSONException {
+        progress = new ProgressDialog(this);
+        progress.setTitle("Carregando ...");
+        progress.setMessage("Processando pagamento");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+        progress.show();
+
+
         final RequestQueue requestQueue = Volley.newRequestQueue(context);
         String soiPays = "";
         for(int i = 0; i < selectedSois.size(); i++){
@@ -390,6 +417,7 @@ public class GiveBackActivity extends AppCompatActivity {
         }
 
         String json = "{\"sale_order_ids\":["+soiPays+"], \"date\": \""+this.date+"\", \"time\": \""+this.time+"\", \"brand\": \""+this.cardBrand+"\"}";
+        Log.d("JSON", json);
         final JSONObject compraRequestBody = new JSONObject(json);
         Log.d("DeliciaeFoco", soiPays + "");
 
