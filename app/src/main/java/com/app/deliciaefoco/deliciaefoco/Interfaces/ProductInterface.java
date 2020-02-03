@@ -14,6 +14,7 @@ public class ProductInterface {
     public String created_at;
     public String updated_at;
     public String category_id;
+    public String barcode;
     public int quantity;
     public int product_menu_id;
 }

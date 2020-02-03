@@ -57,19 +57,38 @@
         </LinearLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <EditText
-        android:id="@+id/editTextSearch"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text=""
-        android:background="#EEE"
-        android:padding="20px"
-        android:hint="Pesquise o produto desejado"
-        android:layout_column="0"
-        android:layout_row="1"
-        android:layout_margin="20dp"/>
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/editTextBarCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:inputType="textPersonName"
+            android:text=""
+            android:background="#EEE"
+            android:padding="10dp"
+            android:hint="Código de barras"
+            android:layout_margin="20dp"/>
+
+        <EditText
+            android:id="@+id/editTextSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:inputType="textPersonName"
+            android:text=""
+            android:background="#EEE"
+            android:padding="10dp"
+            android:hint="Pesquise o produto desejado"
+            android:layout_margin="20dp"/>
+
+
+
+    </LinearLayout>
+
 
     <GridView
         android:id="@+id/gridViewStore"

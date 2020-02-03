@@ -13,12 +13,15 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.GridView;
 import android.widget.NumberPicker;
 import android.widget.Toast;
@@ -60,7 +63,7 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
     private int lastInteractionTime;
     ProductGridViewAdapter adapter;
     ArrayList<LotProductInterface> lots, lotsToSend;
-    EditText txtSearch;
+    EditText txtSearch, txtBarCode;
     Button btnCart, btnEsvaziar;
     private DialogProvider dialog;
     //atributo da classe.
@@ -99,6 +102,44 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
 
 
         txtSearch = (EditText) findViewById(R.id.editTextSearch);
+
+        txtBarCode = (EditText) findViewById(R.id.editTextBarCode);
+        txtBarCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+                }
+            }
+        });
+        txtBarCode.requestFocus();
+
+
+        txtBarCode.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                adapter.getFilter().filter(charSequence, new Filter.FilterListener() {
+                    @Override
+                    public void onFilterComplete(int count) {
+                        if(count == 1){
+                            addOneToCart(adapter.getItem(0), 0);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+
         txtSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -131,6 +172,7 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
             }
         });
 
+        //momode eu te amo muito
         btnEsvaziar = (Button) findViewById(R.id.btnEsvaziar);
         btnEsvaziar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -154,14 +196,31 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
                 currentProduct.product_id = product.product.id;
                 currentProduct.price = Double.parseDouble(product.product.price);
                 currentProduct.maxQuantity = product.quantity;
-
-                //exemplo_simples("Item clicado: " + product.getInt("id") +" - "+ product.getString("name"));
                 showNumberPicker(currentProduct.name, currentProduct.price, product.quantity);
                 txtSearch.setText("");
-
-
+                txtSearch.requestFocus();
             }
         });
+    }
+
+    final public void addOneToCart(LotProductInterface product, int position){
+        lotsToSend.add(adapter.getItem(position));
+        currentProduct = new Product();
+        currentProduct.name = product.product.name;
+        currentProduct.id = product.id;
+        currentProduct.product_id = product.product.id;
+        currentProduct.price = Double.parseDouble(product.product.price);
+        currentProduct.maxQuantity = product.quantity;
+        currentProduct.quantity = 1;
+
+        cart.add(currentProduct);
+        btnCart.setText("Carrinho ("+cart.size()+" Items)");
+
+        txtBarCode.setText("");
+        txtBarCode.requestFocus();
+
+        Toast.makeText(this,
+                "Foram adicionados " + currentProduct.quantity + " unidade(s) de " + currentProduct.name + " ao carrinho.", Toast.LENGTH_SHORT).show();
     }
 
     public boolean onOptionsItemSelected(MenuItem item){
@@ -284,6 +343,12 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
             productInterface.updated_at = products.getJSONObject(i)
                     .getJSONObject("product")
                     .getString("updated_at");
+
+            productInterface.barcode = products.getJSONObject(i)
+                    .getJSONObject("product")
+                    .getString("barcode");
+
+
 
 
             obj.product = productInterface;

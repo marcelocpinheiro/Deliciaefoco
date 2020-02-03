@@ -46,7 +46,8 @@ public class ProductGridViewAdapter extends BaseAdapter implements Filterable {
 
     @Override
     public LotProductInterface getItem(int position) {
-        return this.list.get(position);
+        if(!this.list.isEmpty()) return this.list.get(position);
+        return null;
     }
 
     @Override
@@ -143,6 +144,11 @@ public class ProductGridViewAdapter extends BaseAdapter implements Filterable {
 
                     if (obj.product.name.toLowerCase().contains(constraint) ||
                             this.removerAcentos(obj.product.name.toLowerCase()).contains(constraint)) {
+                        filters.add(obj);
+                    }
+
+                    Log.d("Pesquisa", constraint + " / " + obj.product.barcode);
+                    if (obj.product.barcode.toLowerCase().equals(constraint)){
                         filters.add(obj);
                     }
                 }
