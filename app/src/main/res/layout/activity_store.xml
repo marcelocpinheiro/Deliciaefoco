@@ -62,18 +62,6 @@
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/editTextBarCode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:inputType="textPersonName"
-            android:text=""
-            android:background="#EEE"
-            android:padding="10dp"
-            android:hint="Código de barras"
-            android:layout_margin="20dp"/>
-
-        <EditText
             android:id="@+id/editTextSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

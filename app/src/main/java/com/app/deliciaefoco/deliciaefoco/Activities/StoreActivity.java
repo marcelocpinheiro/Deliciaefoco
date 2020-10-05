@@ -103,6 +103,7 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
 
         txtSearch = (EditText) findViewById(R.id.editTextSearch);
 
+        /*
         txtBarCode = (EditText) findViewById(R.id.editTextBarCode);
         txtBarCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -138,6 +139,8 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
 
             }
         });
+        */
+
 
 
         txtSearch.addTextChangedListener(new TextWatcher() {
@@ -147,8 +150,34 @@ public class StoreActivity extends AppCompatActivity implements NumberPicker.OnV
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                adapter.getFilter().filter(s);
+            public void onTextChanged(final CharSequence s, int start, int before, int count) {
+                adapter.getFilter().filter(s, new Filter.FilterListener() {
+                    @Override
+                    public void onFilterComplete(int count) {
+
+                        boolean numeric = true;
+                        try {
+                            String value = s.toString();
+                            long num = Long.parseLong(value);
+                        }catch (NumberFormatException e) {
+                            numeric = false;
+                        }
+
+
+
+                        if(count == 1 && numeric){
+                            LotProductInterface product = adapter.getItem(0);
+                            lotsToSend.add(product);
+                            currentProduct = new Product();
+                            currentProduct.name = product.product.name;
+                            currentProduct.id = product.id;
+                            currentProduct.product_id = product.product.id;
+                            currentProduct.price = Double.parseDouble(product.product.price);
+                            currentProduct.maxQuantity = product.quantity;
+                            showNumberPicker(currentProduct.name, currentProduct.price, product.quantity);
+                        }
+                    }
+                });
             }
 
             @Override
